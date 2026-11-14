@@ -51,7 +51,7 @@ def step_forecast(day: date, settings: Settings | None = None) -> dict:
 def step_dq(day: date, forecast_expected: bool, settings: Settings | None = None) -> dict:
     settings = settings or get_settings()
     with db.connect(settings) as conn:
-        return dq.run_checks(conn, day, forecast_expected)
+        return dq.run_checks(conn, day, forecast_expected, settings.forecast_min_days_city)
 
 
 def run_day(day: date, settings: Settings | None = None, with_forecast: bool = True) -> dict:

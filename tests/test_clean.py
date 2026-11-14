@@ -8,7 +8,9 @@ STATIONS = pd.DataFrame({"location_id": [1, 2, 3], "station_key": ["a", "a", "b"
 
 def readings(rows):
     """rows: (location_id, sensor_id, parameter, units, value, IST timestamp string)."""
-    df = pd.DataFrame(rows, columns=["location_id", "sensor_id", "parameter", "units", "value", "ts"])
+    df = pd.DataFrame(
+        rows, columns=["location_id", "sensor_id", "parameter", "units", "value", "ts"]
+    )
     df["ts_utc"] = pd.to_datetime(df.pop("ts")).dt.tz_localize("Asia/Kolkata").dt.tz_convert("UTC")
     return df
 
@@ -43,7 +45,11 @@ def test_hour_start_uses_period_end():
     ts = pd.Series(pd.to_datetime(["2026-01-10 10:15", "2026-01-10 11:00", "2026-01-11 00:00"]))
     ts = ts.dt.tz_localize("Asia/Kolkata").dt.tz_convert("UTC")
     hours = hour_start_ist(ts)
-    assert list(hours.astype(str)) == ["2026-01-10 10:00:00", "2026-01-10 10:00:00", "2026-01-10 23:00:00"]
+    assert list(hours.astype(str)) == [
+        "2026-01-10 10:00:00",
+        "2026-01-10 10:00:00",
+        "2026-01-10 23:00:00",
+    ]
 
 
 def test_hourly_mean_and_station_merge():
@@ -64,7 +70,11 @@ def test_drops_sentinels_negatives_zero_pm_and_implausible():
     reasons = {r: n for (_, r), n in res.dropped.items()}
     # 80 (01:00) is alone in the 00:00 hour after the drops, so that hour is incomplete.
     assert reasons == {
-        "sentinel": 1, "negative": 1, "zero_pm": 1, "implausible": 1, "too_few_readings_in_hour": 1
+        "sentinel": 1,
+        "negative": 1,
+        "zero_pm": 1,
+        "implausible": 1,
+        "too_few_readings_in_hour": 1,
     }
     assert res.hourly["value"].tolist() == [pytest.approx(90.0)]  # 85, 90, 95 in the 01:00 hour
 
@@ -92,7 +102,7 @@ def test_short_repeats_are_kept():
 
 def test_isolated_spike_is_removed_but_sustained_rise_is_kept():
     base = [40.0] * 12
-    spiky = base[:6] + [600.0] + base[6:]
+    spiky = [*base[:6], 600.0, *base[6:]]
     res = clean_readings(readings(quarter_hours(3, 35, "pm25", "µg/m³", spiky)), STATIONS)
     assert res.dropped[("pm25", "spike")] == 1
 

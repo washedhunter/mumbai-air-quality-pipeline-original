@@ -122,23 +122,19 @@ def run_day_cmd(
 ) -> None:
     """Run the DAG for one day (re-runs it if a run already exists) and wait."""
     d = _parse_day(day)
-    _airflow("dags", "unpause", DAG_ID)
     if d in _runs():
-        typer.echo(f"Re-running existing run for {d} (clearing all its tasks)")
+        typer.echo(f"Re-running the existing run for {d} (clearing all its tasks)")
         _airflow(
-            "tasks",
-            "clear",
-            DAG_ID,
-            "--start-date",
-            _logical(d),
-            "--end-date",
-            _logical(d),
-            "--yes",
-        )
+            "tasks", "clear", DAG_ID,
+            "--start-date", _logical(d), "--end-date", _logical(d), "--yes",
+        )  # fmt: skip
     else:
+        # Trigger before unpausing: unpausing also starts the daily schedule, whose first run
+        # (yesterday) would otherwise race with a manual trigger for the same day.
         _airflow(
             "dags", "trigger", DAG_ID, "--logical-date", _logical(d), "--run-id", f"manual__{d}"
         )
+    _airflow("dags", "unpause", DAG_ID)
     states = _wait([d], timeout_min)
     typer.echo(f"{d}: {states[d]}")
     _print_counts()

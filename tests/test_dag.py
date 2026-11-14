@@ -1,6 +1,7 @@
 """DAG import test. Needs Airflow, so it runs inside the Airflow image (CI docker job):
 docker compose run --rm --entrypoint python pipeline -m pytest tests/test_dag.py"""
 
+import itertools
 from pathlib import Path
 
 import pytest
@@ -29,7 +30,7 @@ def test_dag_structure(dagbag):
     assert dag is not None
     order = ["extract", "validate", "load_raw", "clean", "sql_models", "forecast", "data_quality"]
     assert set(dag.task_ids) == set(order)
-    for upstream, downstream in zip(order, order[1:], strict=False):
+    for upstream, downstream in itertools.pairwise(order):
         assert downstream in dag.get_task(upstream).downstream_task_ids
     assert dag.get_task("data_quality").trigger_rule == "none_failed"
     assert dag.catchup is False

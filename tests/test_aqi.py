@@ -89,8 +89,18 @@ def test_missing_and_negative():
 
 @pytest.mark.parametrize(
     ("value", "name"),
-    [(0, "Good"), (50, "Good"), (51, "Satisfactory"), (100, "Satisfactory"), (101, "Moderate"),
-     (200, "Moderate"), (201, "Poor"), (301, "Very Poor"), (401, "Severe"), (500, "Severe")],
+    [
+        (0, "Good"),
+        (50, "Good"),
+        (51, "Satisfactory"),
+        (100, "Satisfactory"),
+        (101, "Moderate"),
+        (200, "Moderate"),
+        (201, "Poor"),
+        (301, "Very Poor"),
+        (401, "Severe"),
+        (500, "Severe"),
+    ],
 )
 def test_category(value, name):
     assert aqi.category(value) == name
@@ -120,7 +130,9 @@ def test_overall_tie_breaks_alphabetically():
 
 
 def _hours(day: str, values, start_hour=0):
-    idx = pd.date_range(pd.Timestamp(day) + pd.Timedelta(hours=start_hour), periods=len(values), freq="h")
+    idx = pd.date_range(
+        pd.Timestamp(day) + pd.Timedelta(hours=start_hour), periods=len(values), freq="h"
+    )
     return pd.Series(values, index=idx, dtype=float)
 
 

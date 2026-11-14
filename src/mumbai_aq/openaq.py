@@ -5,6 +5,7 @@ Both return the response bytes untouched; parsing happens in parse.py.
 
 from __future__ import annotations
 
+import logging
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -15,6 +16,7 @@ import httpx
 from .config import IST, Settings
 
 RETRY_STATUSES = {429, 500, 502, 503, 504}
+log = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -52,6 +54,12 @@ def _get(
         if resp.status_code in RETRY_STATUSES and attempt < max_retries:
             reset = resp.headers.get("x-ratelimit-reset") or resp.headers.get("retry-after")
             delay = float(reset) if reset and reset.replace(".", "", 1).isdigit() else 2**attempt
+            log.info(
+                "HTTP %s from %s, retrying in %.0fs",
+                resp.status_code,
+                url,
+                min(max(delay, 1.0), 90.0),
+            )
             sleep(min(max(delay, 1.0), 90.0))
             attempt += 1
             continue

@@ -13,8 +13,8 @@ from __future__ import annotations
 from datetime import date, timedelta
 
 import pendulum
-from airflow.sdk.exceptions import AirflowSkipException
 from airflow.sdk import dag, get_current_context, task
+from airflow.sdk.exceptions import AirflowSkipException
 from airflow.timetables.interval import CronDataIntervalTimetable
 
 IST = "Asia/Kolkata"

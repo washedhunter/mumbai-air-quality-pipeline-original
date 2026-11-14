@@ -9,6 +9,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import logging
 import shutil
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta
@@ -19,6 +20,7 @@ from .openaq import Fetched, OpenAQApi, OpenAQArchive
 from .parse import parse_locations_json
 
 AQI_PARAMETERS = {"pm25", "pm10", "no2", "so2", "o3", "co", "nh3"}
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -147,6 +149,8 @@ def extract_day(
     if location_ids is not None:
         locations = [loc for loc in locations if loc["location_id"] in location_ids]
 
+    log.info("%s: source=%s, %d locations active", day, source, len(locations))
+
     # 2. Readings for the day.
     if source == "archive":
         archive = archive or OpenAQArchive(settings)
@@ -185,6 +189,8 @@ def extract_day(
     else:
         raise ValueError(f"unknown EXTRACT_SOURCE {source!r} (api | archive | auto | sample)")
 
+    ok = sum(e.http_status == 200 for e in entries)
+    log.info("%s: %d payloads fetched (%d with data)", day, len(entries), ok)
     manifest = {"day": day.isoformat(), "source": source, "entries": [asdict(e) for e in entries]}
     (folder / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
     return {"day": day.isoformat(), "source": source, "payloads": len(entries)}

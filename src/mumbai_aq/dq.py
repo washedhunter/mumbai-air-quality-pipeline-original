@@ -19,7 +19,7 @@ class Check:
     detail: str
 
 
-def checks(run_date: date, forecast_expected: bool) -> list[Check]:
+def checks(run_date: date, forecast_expected: bool, min_city_days: int = 60) -> list[Check]:
     limits = " OR ".join(f"(parameter = '{p}' AND value >= {v})" for p, v in MAX_PLAUSIBLE.items())
     d = run_date.isoformat()
     out = [
@@ -117,11 +117,13 @@ class DataQualityError(RuntimeError):
     pass
 
 
-def run_checks(conn: psycopg.Connection, run_date: date, forecast_expected: bool) -> dict:
+def run_checks(
+    conn: psycopg.Connection, run_date: date, forecast_expected: bool, min_city_days: int = 60
+) -> dict:
     results = []
     with conn.transaction(), conn.cursor() as cur:
         cur.execute("DELETE FROM ops.dq_results WHERE run_date = %s", (run_date,))
-        for c in checks(run_date, forecast_expected):
+        for c in checks(run_date, forecast_expected, min_city_days):
             cur.execute(c.sql)
             passed, observed = cur.fetchone()
             passed = bool(passed)

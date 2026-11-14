@@ -24,9 +24,13 @@ def archive_csv(location_id=6945, rows=None) -> bytes:
         ("2026-11-08T01:00:00+05:30", "pm25", "µg/m³", "104.0"),
         ("2026-11-08T01:00:00+05:30", "co", "ppb", "0.52"),
     ]
-    lines = ['"location_id","sensors_id","location","datetime","lat","lon","parameter","units","value"']
+    lines = [
+        '"location_id","sensors_id","location","datetime","lat","lon","parameter","units","value"'
+    ]
     for ts, p, u, v in rows:
-        lines.append(f'{location_id},12235834,"Kurla, Mumbai - MPCB","{ts}","19.0863","72.8888","{p}","{u}","{v}"')
+        lines.append(
+            f'{location_id},12235834,"Kurla, Mumbai - MPCB","{ts}","19.0863","72.8888","{p}","{u}","{v}"'
+        )
     return gzip.compress(("\n".join(lines) + "\n").encode("utf-8"))
 
 
@@ -55,14 +59,23 @@ def locations_json() -> bytes:
             "coordinates": {"latitude": 19.0, "longitude": 72.8},
             "datetimeFirst": {"utc": first},
             "datetimeLast": {"utc": last},
-            "sensors": [{"id": s, "parameter": {"name": p, "units": "Âµg/mÂ³"}} for s, p in sensors],
+            "sensors": [
+                {"id": s, "parameter": {"name": p, "units": "Âµg/mÂ³"}} for s, p in sensors
+            ],
         }
 
     return json.dumps(
         {
             "results": [
-                loc(6945, "2019-06-19T00:00:00Z", "2026-11-14T06:00:00Z", [(11, "pm10"), (12, "temperature")]),
-                loc(7850, "2020-01-09T00:00:00Z", "2021-12-24T00:00:00Z", [(21, "pm25")]),  # inactive
+                loc(
+                    6945,
+                    "2019-06-19T00:00:00Z",
+                    "2026-11-14T06:00:00Z",
+                    [(11, "pm10"), (12, "temperature")],
+                ),
+                loc(
+                    7850, "2020-01-09T00:00:00Z", "2021-12-24T00:00:00Z", [(21, "pm25")]
+                ),  # inactive
             ]
         }
     ).encode()
@@ -115,7 +128,9 @@ def test_api_retries_rate_limit_using_reset_header():
         calls.append(request)
         if len(calls) == 1:
             return httpx.Response(429, headers={"x-ratelimit-reset": "7"})
-        return httpx.Response(200, content=measurements_json(), headers={"x-ratelimit-remaining": "50"})
+        return httpx.Response(
+            200, content=measurements_json(), headers={"x-ratelimit-remaining": "50"}
+        )
 
     s = _settings()
     client = httpx.Client(base_url=s.openaq_base_url, transport=httpx.MockTransport(handler))
@@ -131,10 +146,16 @@ def test_api_retries_rate_limit_using_reset_header():
 def test_api_pauses_when_window_nearly_used():
     sleeps = []
     handler = lambda r: httpx.Response(  # noqa: E731
-        200, content=locations_json(), headers={"x-ratelimit-remaining": "0", "x-ratelimit-reset": "12"}
+        200,
+        content=locations_json(),
+        headers={"x-ratelimit-remaining": "0", "x-ratelimit-reset": "12"},
     )
     s = _settings()
-    api = OpenAQApi(s, client=httpx.Client(base_url=s.openaq_base_url, transport=httpx.MockTransport(handler)), sleep=sleeps.append)
+    api = OpenAQApi(
+        s,
+        client=httpx.Client(base_url=s.openaq_base_url, transport=httpx.MockTransport(handler)),
+        sleep=sleeps.append,
+    )
     api.locations()
     assert sleeps == [12.0]
 
@@ -143,14 +164,18 @@ def test_api_gives_up_after_retries_and_on_client_errors():
     s = _settings()
     api = OpenAQApi(
         s,
-        client=httpx.Client(base_url=s.openaq_base_url, transport=httpx.MockTransport(lambda r: httpx.Response(503))),
+        client=httpx.Client(
+            base_url=s.openaq_base_url, transport=httpx.MockTransport(lambda r: httpx.Response(503))
+        ),
         sleep=lambda _: None,
     )
     with pytest.raises(OpenAQError, match="503"):
         api.locations()
     api401 = OpenAQApi(
         s,
-        client=httpx.Client(base_url=s.openaq_base_url, transport=httpx.MockTransport(lambda r: httpx.Response(401))),
+        client=httpx.Client(
+            base_url=s.openaq_base_url, transport=httpx.MockTransport(lambda r: httpx.Response(401))
+        ),
         sleep=lambda _: None,
     )
     with pytest.raises(OpenAQError, match="401"):
@@ -166,7 +191,9 @@ def test_api_requires_key():
 
 def test_archive_url_and_missing_day():
     s = _settings()
-    arch = OpenAQArchive(s, client=httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(404))))
+    arch = OpenAQArchive(
+        s, client=httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(404)))
+    )
     assert arch.url(6945, DAY).endswith(
         "/records/csv.gz/locationid=6945/year=2026/month=11/location-6945-20261108.csv.gz"
     )
@@ -184,7 +211,11 @@ def _api(s, extra_handler=None):
             return httpx.Response(200, content=measurements_json())
         raise AssertionError(f"unexpected request {request.url}")
 
-    return OpenAQApi(s, client=httpx.Client(base_url=s.openaq_base_url, transport=httpx.MockTransport(handler)), sleep=lambda _: None)
+    return OpenAQApi(
+        s,
+        client=httpx.Client(base_url=s.openaq_base_url, transport=httpx.MockTransport(handler)),
+        sleep=lambda _: None,
+    )
 
 
 def test_extract_api_only_fetches_active_aqi_sensors(tmp_path):
@@ -192,7 +223,10 @@ def test_extract_api_only_fetches_active_aqi_sensors(tmp_path):
     res = extract_day(DAY, s, landing_root=tmp_path, api=_api(s))
     entries = read_manifest(tmp_path, DAY)
     assert res["source"] == "api"
-    assert [(e.endpoint, e.sensor_id) for e in entries] == [("locations", None), ("measurements", 11)]
+    assert [(e.endpoint, e.sensor_id) for e in entries] == [
+        ("locations", None),
+        ("measurements", 11),
+    ]
     summary = validate_day(tmp_path, DAY)
     assert summary["readings"] == 2 and summary["locations_with_data"] == 1
 
@@ -245,7 +279,13 @@ def test_validate_catches_tampering_and_empty_days(tmp_path):
             return httpx.Response(200, content=locations_json())
         return httpx.Response(200, content=json.dumps({"results": []}).encode())
 
-    api = OpenAQApi(s, client=httpx.Client(base_url=s.openaq_base_url, transport=httpx.MockTransport(empty_handler)), sleep=lambda _: None)
+    api = OpenAQApi(
+        s,
+        client=httpx.Client(
+            base_url=s.openaq_base_url, transport=httpx.MockTransport(empty_handler)
+        ),
+        sleep=lambda _: None,
+    )
     extract_day(DAY, s, landing_root=tmp_path, api=api)
     with pytest.raises(ValidationError, match="no readings"):
         validate_day(tmp_path, DAY)
@@ -258,7 +298,15 @@ def test_validate_rejects_readings_from_another_day(tmp_path):
     wrong = archive_csv(rows=[("2026-10-01T10:00:00+05:30", "pm25", "µg/m³", "50")])
     arch = OpenAQArchive(
         s,
-        client=httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(200, content=wrong) if "6945" in r.url.path else httpx.Response(404))),
+        client=httpx.Client(
+            transport=httpx.MockTransport(
+                lambda r: (
+                    httpx.Response(200, content=wrong)
+                    if "6945" in r.url.path
+                    else httpx.Response(404)
+                )
+            )
+        ),
     )
     extract_day(DAY, s, landing_root=tmp_path, archive=arch, location_ids={6945})
     with pytest.raises(ValidationError, match="fall on or next to"):

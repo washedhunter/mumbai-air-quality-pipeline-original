@@ -73,7 +73,9 @@ def test_every_model_has_a_header_and_splits():
         assert stmts, m.name
         if m.materialized == "incremental":
             # Incremental models must delete their day range before inserting it.
-            assert any(s.upper().startswith("DELETE") and "%(day_from)s" in s for s in stmts), m.name
+            assert any(s.upper().startswith("DELETE") and "%(day_from)s" in s for s in stmts), (
+                m.name
+            )
         else:
             assert all("%(" not in s for s in stmts), m.name
 

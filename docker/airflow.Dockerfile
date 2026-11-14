@@ -20,6 +20,9 @@ COPY --chown=airflow:root dags /opt/airflow/dags
 COPY --chown=airflow:root data/sample /opt/aq/sample
 COPY --chown=airflow:root tests /opt/aq/tests
 
+# Created here (owned by the airflow user) so the named volume mounted on it inherits the ownership.
+RUN mkdir -p /opt/airflow/data/landing
+
 ENV SAMPLE_DIR=/opt/aq/sample \
     LANDING_DIR=/opt/airflow/data/landing
 

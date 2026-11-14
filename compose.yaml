@@ -28,6 +28,13 @@ x-airflow-common: &airflow-common
     AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL: "30"
     WAREHOUSE_DSN: postgresql://aq:${WAREHOUSE_PASSWORD:-aq}@warehouse:5432/air_quality
     LANDING_DIR: /opt/airflow/data/landing
+    # Pipeline knobs (also read from .env); see .env.example
+    EXTRACT_SOURCE: ${EXTRACT_SOURCE:-auto}
+    ALWAYS_FORECAST: ${ALWAYS_FORECAST:-false}
+    FORECAST_MIN_DAYS_CITY: ${FORECAST_MIN_DAYS_CITY:-60}
+    FORECAST_MIN_DAYS_STATION: ${FORECAST_MIN_DAYS_STATION:-180}
+    BACKTEST_WEEKS: ${BACKTEST_WEEKS:-26}
+    BACKTEST_STATION_ORIGINS: ${BACKTEST_STATION_ORIGINS:-6}
   user: "${AIRFLOW_UID:-50000}:0"
   volumes:
     - airflow-logs:/opt/airflow/logs

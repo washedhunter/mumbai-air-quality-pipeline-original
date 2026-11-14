@@ -21,10 +21,18 @@ pytestmark = pytest.mark.db
 
 FIRST, LAST = date(2026, 10, 27), date(2026, 11, 9)
 TABLES = (
-    "raw.payloads", "staging.measurements", "core.hourly", "marts.daily_pollutant",
-    "marts.daily_station_aqi", "marts.city_daily_aqi", "marts.weekly_trends",
-    "marts.seasonal_patterns", "marts.neighbourhood_pollutant", "marts.dominant_pollutant",
-    "marts.station_coverage", "marts.forecasts",
+    "raw.payloads",
+    "staging.measurements",
+    "core.hourly",
+    "marts.daily_pollutant",
+    "marts.daily_station_aqi",
+    "marts.city_daily_aqi",
+    "marts.weekly_trends",
+    "marts.seasonal_patterns",
+    "marts.neighbourhood_pollutant",
+    "marts.dominant_pollutant",
+    "marts.station_coverage",
+    "marts.forecasts",
 )
 
 
@@ -40,7 +48,9 @@ def _fingerprint(conn) -> dict[str, tuple]:
     with conn.cursor() as cur:
         for t in TABLES:
             c = cols.get(t, "*")
-            cur.execute(f"SELECT count(*), coalesce(sum(hashtext(x::text)::bigint), 0) FROM (SELECT {c} FROM {t}) x")
+            cur.execute(
+                f"SELECT count(*), coalesce(sum(hashtext(x::text)::bigint), 0) FROM (SELECT {c} FROM {t}) x"
+            )
             out[t] = cur.fetchone()
     return out
 
@@ -125,7 +135,9 @@ def test_sql_daily_aqi_matches_python(loaded):
     """Recompute every station-day AQI in Python from core.hourly and compare with the SQL model."""
     with db.connect(loaded) as conn, conn.cursor() as cur:
         cur.execute("SELECT station_key, parameter, hour_ist, value FROM core.hourly")
-        hourly = pd.DataFrame(cur.fetchall(), columns=["station_key", "parameter", "hour_ist", "value"])
+        hourly = pd.DataFrame(
+            cur.fetchall(), columns=["station_key", "parameter", "hour_ist", "value"]
+        )
         cur.execute("SELECT station_key, day, aqi, dominant_pollutant FROM marts.daily_station_aqi")
         sql = {(k, d): (a, p) for k, d, a, p in cur.fetchall()}
     hourly["hour_ist"] = pd.to_datetime(hourly["hour_ist"])
@@ -150,8 +162,15 @@ def test_sql_daily_aqi_matches_python(loaded):
 
 def test_models_are_all_materialised(loaded):
     names = {m.name for m in models.discover()}
-    assert {"10_daily_pollutant", "20_daily_station_aqi", "40_city_daily_aqi", "50_weekly_trends",
-            "60_seasonal_patterns", "70_neighbourhood_pollutant", "80_dominant_pollutant"} <= names
+    assert {
+        "10_daily_pollutant",
+        "20_daily_station_aqi",
+        "40_city_daily_aqi",
+        "50_weekly_trends",
+        "60_seasonal_patterns",
+        "70_neighbourhood_pollutant",
+        "80_dominant_pollutant",
+    } <= names
     with db.connect(loaded) as conn, conn.cursor() as cur:
         cur.execute("SELECT DISTINCT season FROM marts.seasonal_patterns")
         assert {r[0] for r in cur.fetchall()} == {"Post-monsoon"}  # the sample is Oct-Nov
@@ -172,8 +191,16 @@ def test_forecast_and_dq(loaded):
             (LAST,),
         )
         n, first, last, ordered = cur.fetchone()
-        assert (n, first, last, ordered) == (7, LAST + timedelta(days=1), LAST + timedelta(days=7), True)
-        cur.execute("SELECT check_name FROM ops.dq_results WHERE run_date = %s AND severity = 'error' AND NOT passed", (LAST,))
+        assert (n, first, last, ordered) == (
+            7,
+            LAST + timedelta(days=1),
+            LAST + timedelta(days=7),
+            True,
+        )
+        cur.execute(
+            "SELECT check_name FROM ops.dq_results WHERE run_date = %s AND severity = 'error' AND NOT passed",
+            (LAST,),
+        )
         assert cur.fetchall() == []
 
 
@@ -199,3 +226,17 @@ def test_migrate_is_repeatable(loaded):
         db.migrate(conn, loaded)
         assert conn.execute("SELECT count(*) FROM core.aqi_breakpoints").fetchone()[0] == 42
         assert conn.execute("SELECT count(*) FROM core.stations").fetchone()[0] == 44
+
+
+def test_powerbi_guide_references_exist(loaded):
+    """Every table[column] and measure the Power BI guide names exists in the warehouse."""
+    import importlib.util
+
+    from tests.conftest import ROOT
+
+    spec = importlib.util.spec_from_file_location(
+        "check_guide", ROOT / "scripts" / "check_powerbi_guide.py"
+    )
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    assert mod.check(loaded.warehouse_dsn) == []

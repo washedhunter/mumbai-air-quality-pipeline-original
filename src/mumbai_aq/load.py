@@ -14,7 +14,7 @@ import pandas as pd
 import psycopg
 from psycopg.types.json import Jsonb
 
-from .clean import clean_readings
+from .clean import POLLUTANTS, clean_readings
 from .config import Settings
 from .extract import day_dir, read_manifest
 from .parse import parse_locations_json
@@ -60,6 +60,10 @@ def load_raw(conn: psycopg.Connection, landing_root: Path, day: date) -> dict:
                 continue
             df = parse_entry(folder, e)
             if df is None or df.empty:
+                continue
+            # raw keeps every parameter; staging only the AQI pollutants (halves its size).
+            df = df[df["parameter"].isin(POLLUTANTS)]
+            if df.empty:
                 continue
             with cur.copy(
                 """COPY staging.measurements (payload_id, target_date, location_id, sensor_id,
