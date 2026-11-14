@@ -55,7 +55,14 @@ Two subtleties made "re-running gives the same rows" true:
   so averages use exact `numeric` arithmetic and are rounded to 4 decimals.
 
 Backfill runs execute in parallel; advisory locks serialise the per-day cleaning and the SQL model
-step so parallel runs can't trip over each other.
+step so parallel runs can't trip over each other. Prophet's intervals come from random sampling, so
+the forecast seeds numpy from the series and its last day: re-running a day reproduces the same
+forecast rows too (the idempotency test checksums the forecast values).
+
+A day for which OpenAQ's archive has no file for any station is a gap in the source, not a pipeline
+failure: the 404s are stored, the run stays green and the `source_has_data` DQ warning flags it. An
+API day with no readings at all fails (and retries), because the API is real-time and that points to
+an outage.
 
 ## 5. Station → neighbourhood mapping
 
@@ -83,10 +90,12 @@ fixes the data. This is a judgement call and it's documented here and in the REA
 Applied per sensor per IST day, so a day's result depends only on that day's readings:
 - drop missing values, unknown units, sentinels (±999, 9999…), negatives, zero PM;
 - drop physically implausible values (PM ≥ 999 is also excluded by CPCB itself);
-- drop **flatlines**: an identical value for ≥ 6 hours (stuck sensors are common in this data,
-  e.g. Kurla SO2 constant at 29.26 for days);
-- drop **isolated spikes**: > 3× the 2-hour rolling median and above it by a pollutant-specific
-  margin. A sustained rise (e.g. Diwali night) is kept;
+- drop **flatlines**: a run of identical values whose first and last readings are ≥ 5 hours apart
+  and that has ≥ 4 readings, i.e. about 6 hours of 15-minute data or 6 hourly readings (stuck
+  sensors are common in this data, e.g. Kurla SO2 constant at 29.26 for days);
+- drop **isolated spikes**: > 3× the rolling median of the 9 surrounding readings (about 2 hours
+  for 15-minute sensors, 9 hours for hourly ones) and above it by a pollutant-specific margin.
+  A sustained rise (e.g. Diwali night) is kept;
 - hourly mean needs ≥ 2 of the 4 quarter-hours (1 for hourly sensors such as the US Consulate);
 - several sensors for the same station/pollutant/hour are averaged.
 Every dropped row is counted by reason in `ops.cleaning_log`.
@@ -106,8 +115,9 @@ Choices inside the method:
 - The Severe band is open-ended in CPCB's table; we use the common convention for its upper
   breakpoint (e.g. PM2.5 500 at 380 µg/m³) and cap at 500.
 - Lead (Pb) is left out: no Mumbai station reports it.
-- City AQI = mean of the valid station AQIs inside Mumbai that day (our definition; the median and
-  station count are stored next to it).
+- City AQI = mean of the valid station AQIs inside Mumbai that day, only when at least 3 Mumbai
+  stations have one (our definition; the median and station count are stored next to it). The
+  forecast, the charts and Power BI all use this same series.
 
 ## 9. Seasons
 

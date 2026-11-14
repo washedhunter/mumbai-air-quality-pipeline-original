@@ -64,10 +64,11 @@ AVERAGE ( daily_station_aqi[aqi] )
 Stations Reporting =
 CALCULATE ( DISTINCTCOUNT ( daily_station_aqi[station_key] ), NOT ISBLANK ( daily_station_aqi[aqi] ) )
 
-Stations Reporting (Latest Day) =
+// Mumbai stations behind the latest city AQI (same set as the city figure next to it).
+Mumbai Stations (Latest Day) =
 VAR d = [Latest Day]
 RETURN
-    CALCULATE ( [Stations Reporting], REMOVEFILTERS ( dim_date ), daily_station_aqi[day] = d )
+    CALCULATE ( MAX ( city_daily_aqi[n_stations] ), REMOVEFILTERS ( dim_date ), city_daily_aqi[day] = d )
 
 Station Days Poor or Worse % =
 DIVIDE (
@@ -149,8 +150,12 @@ VAR actual = [City AQI]
 RETURN
     IF ( ISBLANK ( actual ), CALCULATE ( [Forecast AQI], latest_forecast[level] = "city" ), actual )
 
+// Pooled over all scored cells (weights each horizon by its cell count), exactly like the README.
 Backtest MAE =
-AVERAGE ( backtest_summary[mae] )
+DIVIDE (
+    SUMX ( backtest_summary, backtest_summary[mae] * backtest_summary[n] ),
+    SUM ( backtest_summary[n] )
+)
 
 Prophet MAE (city) =
 CALCULATE ( [Backtest MAE], backtest_summary[level] = "city", backtest_summary[model] = "prophet" )

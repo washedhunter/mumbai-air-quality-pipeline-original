@@ -149,11 +149,11 @@ followed by a card of `[Latest Day]`.
 
 | # | Visual | Fields | Settings |
 |---|---|---|---|
-| 1 | **Slicer** (top-right) | `dim_date[day]` | Style **Between**. Set the range to the last 12 months. |
-| 2 | **Card** | `Latest City AQI` | Callout value → *Conditional formatting → fx → Format style: Field value → `Latest AQI Colour`* on the card **background**. Title "Mumbai AQI (latest day)". |
+| 1 | **Slicer** (top-right) | `dim_date[day]` | Style **Between**. Drag the handles to the last 12 months before saving. |
+| 2 | **Card** | `Latest City AQI` | Format visual → **General → Effects → Background → fx** (conditional formatting button) → Format style *Field value* → `Latest AQI Colour`. Title "Mumbai AQI (latest day)". |
 | 3 | **Card** | `Latest City Category` | Title "Category". |
 | 4 | **Card** | `Latest Dominant Pollutant` | Title "Dominant pollutant". |
-| 5 | **Card** | `Stations Reporting (Latest Day)` | Title "Stations reporting". |
+| 5 | **Card** | `Mumbai Stations (Latest Day)` | Title "Mumbai stations in the city AQI". |
 | 6 | **Card** | `% Days Poor or Worse` | Title "Days Poor or worse (selected period)". |
 | 7 | **Line chart** (wide, middle) | X: `dim_date[day]`; Y: `City AQI`, `City AQI 7d Rolling` | Analytics pane → **Constant line** at 100 ("Satisfactory limit") and 200 ("Moderate limit"), dashed. Title "Mumbai daily AQI". |
 | 8 | **Stacked column chart** (bottom-left) | X: `dim_date[month_start]` (turn off date hierarchy: click the arrow → `month_start`); Y: `Days With City AQI`; Legend: `city_daily_aqi[category]` | Format → Columns → set each category's colour to the CPCB colour from `dim_aqi_category` (Good #00B050, Satisfactory #92D050, Moderate #FFFF00, Poor #FF9900, Very Poor #FF0000, Severe #C00000). Title "Days per category, by month". |
@@ -174,7 +174,7 @@ followed by a card of `[Latest Day]`.
 
 | # | Visual | Fields | Settings |
 |---|---|---|---|
-| 1 | **Slicer** | `dim_pollutant[display_name]` | **Single select**; filter out `AQI`. Default PM2.5. |
+| 1 | **Slicer** | `dim_pollutant[display_name]` | **Single select** (Format → Slicer settings → Selection). Filter pane: `display_name` is not `AQI`. Click **PM2.5** so it's selected when you save; the saved selection is the default. |
 | 2 | **Slicer** | `dim_date[day]` | Between (synced). |
 | 3 | **Card** | `Avg Concentration` | Title "Average concentration". Add a second card next to it with `Concentration Unit` (no title). |
 | 4 | **Card** | `Max Concentration` | Title "Highest daily value". |
@@ -186,11 +186,11 @@ followed by a card of `[Latest Day]`.
 
 | # | Visual | Fields | Settings |
 |---|---|---|---|
-| 1 | **Slicer** | `dim_pollutant[display_name]` | Single select; default **AQI**. |
+| 1 | **Slicer** | `dim_pollutant[display_name]` | Single select. Click **AQI** before saving (the saved selection is the default). |
 | 2 | **Clustered column chart** | X: `seasonal_patterns[season]`; Y: `seasonal_patterns[mean_value]` (Average); Legend: `seasonal_patterns[year]` | Filter pane: `seasonal_patterns[level]` = city. Title "Mumbai by season and year". |
 | 3 | **Matrix** | Rows: `seasonal_patterns[area]`; Columns: `seasonal_patterns[season]`; Values: `seasonal_patterns[mean_value]` (Average) | Filter: `level` = neighbourhood. Background gradient #00B050 → #FFFF00 → #FF0000. Title "Neighbourhoods by season". |
 | 4 | **Line chart** | X: `dim_date[month_name]`; Y: `City AQI`; Legend: `dim_date[year]` | Title "Monthly profile of Mumbai AQI". (Not affected by slicer 1 — edit interactions.) |
-| 5 | **Table** | `seasonal_patterns[season_label]`, `[days]`, `[mean_value]`, `[p90_value]`, `[pct_poor_or_worse]` | Filter: `level` = city, `pollutant` = aqi. Sort by `season_order` then `year`. Title "Season summary (city AQI)". |
+| 5 | **Table** | `seasonal_patterns[year]`, `seasonal_patterns[season_order]`, `seasonal_patterns[season_label]`, `[days]`, `[mean_value]`, `[p90_value]`, `[pct_poor_or_worse]` | Filter: `level` = city, `pollutant` = aqi. Click the `year` header to sort, then **Shift+click** the `season_order` header to add it as a second sort key, so rows run in time order (Winter, Summer, Monsoon, Post-monsoon per year). Title "Season summary (city AQI)". |
 
 ### Page 5 — Forecast
 
