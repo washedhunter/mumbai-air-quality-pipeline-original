@@ -1,0 +1,34 @@
+# secrets
+.env
+
+# runtime data (only data/sample/ is committed)
+data/*
+!data/sample/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# airflow runtime
+logs/
+airflow-data/
+
+# power bi local caches (the .pbip project itself is committed)
+powerbi/**/.pbi/localSettings.json
+powerbi/**/.pbi/cache.abf
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/
