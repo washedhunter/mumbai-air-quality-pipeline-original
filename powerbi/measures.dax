@@ -41,11 +41,15 @@ COUNTROWS ( city_daily_aqi )
 Days Poor or Worse =
 CALCULATE ( COUNTROWS ( city_daily_aqi ), city_daily_aqi[aqi] > 200 )
 
+// COALESCE so a period with no Poor days shows 0.0% instead of (Blank).
 % Days Poor or Worse =
-DIVIDE ( [Days Poor or Worse], [Days With City AQI] )
+DIVIDE ( COALESCE ( [Days Poor or Worse], 0 ), [Days With City AQI] )
 
 % Days Good or Satisfactory =
-DIVIDE ( CALCULATE ( COUNTROWS ( city_daily_aqi ), city_daily_aqi[aqi] <= 100 ), [Days With City AQI] )
+DIVIDE (
+    COALESCE ( CALCULATE ( COUNTROWS ( city_daily_aqi ), city_daily_aqi[aqi] <= 100 ), 0 ),
+    [Days With City AQI]
+)
 
 City AQI 7d Rolling =
 VAR d = MAX ( dim_date[day] )
@@ -89,8 +93,10 @@ MAX ( daily_pollutant[concentration] )
 Concentration Unit =
 SELECTEDVALUE ( dim_pollutant[unit], "mixed units" )
 
+// Station-days with a dominant pollutant (days with too little data have none and would
+// otherwise show up as a "(Blank)" bar).
 Days Dominant =
-COUNTROWS ( daily_station_aqi )
+CALCULATE ( COUNTROWS ( daily_station_aqi ), NOT ISBLANK ( daily_station_aqi[dominant_pollutant] ) )
 
 Dominant Share =
 DIVIDE (

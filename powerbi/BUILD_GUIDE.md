@@ -6,6 +6,12 @@ warehouse (checked with `uv run python scripts/check_powerbi_guide.py`, see the 
 
 Time needed: about 1.5–2 hours the first time.
 
+Last checked end to end with Power BI Desktop (Microsoft Store build, November 2026; reports save
+in the PBIR format). The built result is in this folder: `mumbai_air_quality.pbix`, the same report
+as a Power BI project (`mumbai_air_quality.pbip` + the `.Report` / `.SemanticModel` folders) and
+`mumbai_air_quality.pdf`. Menu names move between Power BI releases; where this version differs from
+older ones the guide says so.
+
 ---
 
 ## 0. Before you start
@@ -25,7 +31,9 @@ Time needed: about 1.5–2 hours the first time.
 
 ## 1. Connect to PostgreSQL
 
-1. Power BI Desktop → **Home → Get data → More… → Database → PostgreSQL database → Connect**.
+1. Power BI Desktop → **Home → Get data → More… → Database → PostgreSQL database → Connect**
+   (or type *PostgreSQL* in the Get Data search box). If a pop-up offers the "new Get Data
+   experience", either works; **No thanks** gives the dialog described here.
 2. **Server:** `localhost:5433` **Database:** `air_quality`
    **Data Connectivity mode:** **Import** (the tables are small and change once a day).
    Leave *Advanced options* empty → **OK**.
@@ -63,28 +71,34 @@ Click **Transform Data** (not Load).
 ## 3. Power Query clean-up
 
 For each query on the left:
-1. **Rename** it without the `marts ` prefix (right-click → Rename): e.g. `marts dim_date` →
-   `dim_date`. The measures assume these exact names.
-2. Check the **data types** (icon left of each column header):
+1. **Rename** it without the `marts ` prefix (double-click the name, or right-click → Rename): e.g.
+   `marts dim_date` → `dim_date`. The measures assume these exact names.
+2. Check the **data types** (icon left of each column header). The PostgreSQL connector brings the
+   warehouse types across, so normally nothing needs changing:
    - Every `day`, `month_start`, `week_start`, `target_date`, `run_date`, `origin_date`,
      `first_day`, `last_day` column → **Date**.
    - `aqi`, `aqi_forecast`, `aqi_lower`, `aqi_upper`, `concentration`, `sub_index`, `value`,
      `mean_*`, `p90_value`, `pct_*`, `mae`, `ratio_to_average`, `lat`, `lon` → **Decimal number**.
+     Exception: `daily_station_aqi[aqi]` is a whole number (a station's AQI is an integer); leave it.
    - Counts (`n_stations`, `days`, `hours_with_data`, `horizon_days`, `rank_in_month`, `sort_order`,
      `season_order`, `days_dominant`, `n`) → **Whole number**.
-3. In `dim_station`, set `lat` and `lon` **Data category** later in Model view (step 4.3).
+3. In `dim_station`, set `lat` and `lon` **Data category** later (step 4.3).
 
-**Home → Close & Apply.**
+**Home → Close & Apply.** Don't load while the pipeline is rebuilding the marts (a backfill or the
+daily run): the load fails with *"PostgreSQL: Exception while reading from stream"*. Wait for the run
+to finish, then **Apply changes** (yellow bar) or **Home → Refresh**.
 
 ## 4. Model
 
 ### 4.1 Mark the date table
-Select `dim_date` → **Table tools → Mark as date table** → Date column: `day`.
+**Table view** → select `dim_date` → **Table tools → Mark as date table** → switch it **On** →
+date column `day` → **Save**.
 
 ### 4.2 Relationships
-Go to **Model view**. Delete any relationships Power BI auto-created, then create these (drag
-the column from the fact table onto the dimension column). All are **Many-to-one (*:1), single
-cross-filter direction, active**:
+Power BI auto-detects about a dozen relationships on load and some are wrong (for example
+`dim_aqi_category[sort_order]` → `dim_pollutant[sort_order]`). **Home → Manage relationships** →
+tick the box in the header row to select all → **Delete** → confirm. Then create these. All are
+**Many-to-one (*:1), single cross-filter direction, active**:
 
 | From (many) | To (one) |
 |---|---|
@@ -104,25 +118,43 @@ cross-filter direction, active**:
 | `station_coverage[station_key]` | `dim_station[station_key]` |
 | `latest_forecast[target_date]` | `dim_date[day]` |
 
+Two ways to create them:
+- **Drag and drop** in Model view (fact column onto the dimension column), or **Manage
+  relationships → New relationship** and pick the two tables and columns.
+- **Faster: TMDL view** (left rail, the **TMDL** icon). Open `relationships.tmdl` from this folder,
+  paste the whole file into the editor, click **Apply**, then **Refresh now** on the yellow bar.
+  It creates exactly the 15 relationships above.
+
 Leave `weekly_trends`, `backtest_summary` and `forecast_backtest` unrelated (they're filtered
 inside their own visuals). `city_daily_aqi[category]` stays unrelated too (only one relationship
 from category is allowed without ambiguity).
 
 ### 4.3 Column settings
 - `dim_station[lat]` → **Column tools → Data category → Latitude**; `dim_station[lon]` → **Longitude**.
+  Set **Summarization → Don't summarize** on both too, so maps and scatter charts get one point
+  per station.
 - `dim_date[month_name]` → **Sort by column** → `month`.
 - `dim_date[weekday_name]` → **Sort by column** → `weekday_number`.
 - `dim_date[season]` and `seasonal_patterns[season]` → **Sort by column** → `season_order`.
 - `dim_pollutant[display_name]` → **Sort by column** → `sort_order`.
 - `dim_aqi_category[category]` → **Sort by column** → `sort_order`.
-- Hide (right-click → Hide in report view) every `station_key`, `pollutant` and `day` column on
-  the fact tables, so people use the dimension columns instead.
+- Hide the fact-table key columns so people use the dimension columns instead:
+  `city_daily_aqi[day]`, `daily_station_aqi[day]`, `daily_station_aqi[station_key]`,
+  `daily_pollutant[day]`, `daily_pollutant[station_key]`, `daily_pollutant[pollutant]`,
+  `dominant_pollutant[station_key]`, `dominant_pollutant[pollutant]`,
+  `neighbourhood_pollutant[pollutant]`, `station_coverage[station_key]`. Quickest in **Model
+  view**: Ctrl+click them in the Data pane → Properties → **Is hidden** on (or right-click → Hide in
+  report view). Leave `seasonal_patterns[pollutant]` and `latest_forecast[station_key]` visible:
+  page 4 filters on the first and page 5 shows the second.
 
 ### 4.4 Measures
 1. **Home → Enter data** → name the table `_Measures` → **Load**. (Delete its empty `Column1`
    after the first measure exists.)
 2. Open `measures.dax`. For each block (`Name = expression`), select `_Measures` →
-   **Modeling → New measure**, paste the block, press Enter.
+   **Modeling → New measure**, paste the block, press Enter. (TMDL view also works: wrap the
+   measures in `createOrReplace` / `ref table _Measures` and indent each expression under a
+   `measure 'Name' =` line; the editor shows "cannot find name" warnings until **Apply**, which is
+   expected because the measures reference each other.)
 3. Formats (select the measure → Measure tools):
    - `% Days Poor or Worse`, `% Days Good or Satisfactory`, `Station Days Poor or Worse %`,
      `Dominant Share`, `Prophet vs Best Baseline` → **Percentage, 1 decimal**.
@@ -131,33 +163,43 @@ from category is allowed without ambiguity).
    - `Latest Day`, `Forecast Run Date` → Date, format `dd mmm yyyy`.
 
 ### 4.5 Theme
-**View → Themes → Browse for themes →** `theme.json`. It sets the colours, fonts and the light-grey
-page background.
+**Design → Import theme →** `theme.json` (older versions: **View → Themes → Browse for themes**).
+It sets the colours, fonts and the light-grey page background.
 
 ---
 
 ## 5. Pages
 
-Canvas: **View → Page view → Fit to page**, page size **16:9** (default). Positions below are rough
-(left→right, top→bottom); exact pixels don't matter.
+Canvas: **View → Page view → Fit to page**, page size **16:9**. New reports now default to
+1920 × 1080; the built report uses 1280 × 720 (**Format page → Canvas settings**), which keeps text
+readable in screenshots. Positions below are rough (left→right, top→bottom); exact pixels don't
+matter.
 
 For every page, add a **title text box** at the top-left with the page name, and a small text box
 at the bottom: *"Source: OpenAQ (CPCB/MPCB/BMC/IITM stations). AQI: CPCB National AQI. Last data:"*
 followed by a card of `[Latest Day]`.
 
+Tips that apply to every page:
+- Visuals get an automatic subtitle ("City AQI by day"…) in this version's default theme; turn it
+  off under **Format visual → General → Title → Subtitle**.
+- On cards, turn off **Category label** when the visual title already says what the number is.
+- On slicers that have a title, turn off **Slicer header** so the name doesn't appear twice.
+- A slicer's saved selection is what readers see first, so set it (dates, PM2.5, AQI…) before
+  saving.
+
 ### Page 1 — Overview
 
 | # | Visual | Fields | Settings |
 |---|---|---|---|
-| 1 | **Slicer** (top-right) | `dim_date[day]` | Style **Between**. Drag the handles to the last 12 months before saving. |
+| 1 | **Slicer** (top-right) | `dim_date[day]` | Style **Between** (the default for a date). Drag the handles, or type the two dates, to the last 12 months before saving. |
 | 2 | **Card** | `Latest City AQI` | Format visual → **General → Effects → Background → fx** (conditional formatting button) → Format style *Field value* → `Latest AQI Colour`. Title "Mumbai AQI (latest day)". |
 | 3 | **Card** | `Latest City Category` | Title "Category". |
 | 4 | **Card** | `Latest Dominant Pollutant` | Title "Dominant pollutant". |
 | 5 | **Card** | `Mumbai Stations (Latest Day)` | Title "Mumbai stations in the city AQI". |
 | 6 | **Card** | `% Days Poor or Worse` | Title "Days Poor or worse (selected period)". |
-| 7 | **Line chart** (wide, middle) | X: `dim_date[day]`; Y: `City AQI`, `City AQI 7d Rolling` | Analytics pane → **Constant line** at 100 ("Satisfactory limit") and 200 ("Moderate limit"), dashed. Title "Mumbai daily AQI". |
-| 8 | **Stacked column chart** (bottom-left) | X: `dim_date[month_start]` (turn off date hierarchy: click the arrow → `month_start`); Y: `Days With City AQI`; Legend: `city_daily_aqi[category]` | Format → Columns → set each category's colour to the CPCB colour from `dim_aqi_category` (Good #00B050, Satisfactory #92D050, Moderate #FFFF00, Poor #FF9900, Very Poor #FF0000, Severe #C00000). Title "Days per category, by month". |
-| 9 | **Map** (bottom-right; use *Azure Map* if *Map* is disabled in your tenant) | Latitude: `dim_station[lat]`; Longitude: `dim_station[lon]`; Bubble size: `Station AQI`; Tooltips: `dim_station[station_name]`, `dim_station[neighbourhood]`, `Station AQI` | Bubbles → Colors → **fx** → Field value → `AQI Colour`. Title "Station AQI (selected period)". |
+| 7 | **Line chart** (wide, middle) | X: `dim_date[day]`; Y: `City AQI`, `City AQI 7d Rolling` | Analytics pane → **Y-Axis Constant Line** (called *Constant line* in older versions) at 100 ("Satisfactory limit") and 200 ("Moderate limit"), dashed. Title "Mumbai daily AQI". |
+| 8 | **Stacked column chart** (bottom-left) | X: `dim_date[month_start]` (no date hierarchy appears once `dim_date` is marked as the date table; if one does, click the arrow → `month_start`); Y: `Days With City AQI`; Legend: `city_daily_aqi[category]` | Format → Columns → set each category's colour to the CPCB colour from `dim_aqi_category` (Good #00B050, Satisfactory #92D050, Moderate #FFFF00, Poor #FF9900, Very Poor #FF0000, Severe #C00000). Title "Days per category, by month". |
+| 9 | **Map** (bottom-right) | Latitude: `dim_station[lat]`; Longitude: `dim_station[lon]`; Bubble size: `Station AQI`; Tooltips: `dim_station[station_name]`, `dim_station[neighbourhood]`, `Station AQI` | Bubbles → Colors → **fx** → Field value → `AQI Colour`. Title "Station AQI (selected period)". **Note:** current Power BI Desktop ships with *Map* turned off (**File → Options and settings → Options → Global → Security → Map and filled map visuals**) and *Azure Map* asks you to sign in. The built report uses the no-sign-in fallback instead: **Scatter chart** with Values `dim_station[station_name]`, X `dim_station[lon]` (Average), Y `dim_station[lat]` (Average), Size `Station AQI`, Tooltips `dim_station[neighbourhood]`; **Markers → Colors → fx → Field value →** `AQI Colour`. |
 
 ### Page 2 — Neighbourhoods
 
@@ -174,7 +216,7 @@ followed by a card of `[Latest Day]`.
 
 | # | Visual | Fields | Settings |
 |---|---|---|---|
-| 1 | **Slicer** | `dim_pollutant[display_name]` | **Single select** (Format → Slicer settings → Selection). Filter pane: `display_name` is not `AQI`. Click **PM2.5** so it's selected when you save; the saved selection is the default. |
+| 1 | **Slicer** | `dim_pollutant[display_name]` | Style **Dropdown**, **Single select** (Format → Slicer settings → Options / Selection). Filter pane: `display_name` is not **AQI**. Click **PM2.5** so it's selected when you save; the saved selection is the default. |
 | 2 | **Slicer** | `dim_date[day]` | Between (synced). |
 | 3 | **Card** | `Avg Concentration` | Title "Average concentration". Add a second card next to it with `Concentration Unit` (no title). |
 | 4 | **Card** | `Max Concentration` | Title "Highest daily value". |
@@ -186,38 +228,46 @@ followed by a card of `[Latest Day]`.
 
 | # | Visual | Fields | Settings |
 |---|---|---|---|
-| 1 | **Slicer** | `dim_pollutant[display_name]` | Single select. Click **AQI** before saving (the saved selection is the default). |
+| 1 | **Slicer** | `dim_pollutant[display_name]` | Dropdown, single select. Click **AQI** before saving (the saved selection is the default). |
 | 2 | **Clustered column chart** | X: `seasonal_patterns[season]`; Y: `seasonal_patterns[mean_value]` (Average); Legend: `seasonal_patterns[year]` | Filter pane: `seasonal_patterns[level]` = city. Title "Mumbai by season and year". |
 | 3 | **Matrix** | Rows: `seasonal_patterns[area]`; Columns: `seasonal_patterns[season]`; Values: `seasonal_patterns[mean_value]` (Average) | Filter: `level` = neighbourhood. Background gradient #00B050 → #FFFF00 → #FF0000. Title "Neighbourhoods by season". |
 | 4 | **Line chart** | X: `dim_date[month_name]`; Y: `City AQI`; Legend: `dim_date[year]` | Title "Monthly profile of Mumbai AQI". (Not affected by slicer 1 — edit interactions.) |
-| 5 | **Table** | `seasonal_patterns[year]`, `seasonal_patterns[season_order]`, `seasonal_patterns[season_label]`, `[days]`, `[mean_value]`, `[p90_value]`, `[pct_poor_or_worse]` | Filter: `level` = city, `pollutant` = aqi. Click the `year` header to sort, then **Shift+click** the `season_order` header to add it as a second sort key, so rows run in time order (Winter, Summer, Monsoon, Post-monsoon per year). Title "Season summary (city AQI)". |
+| 5 | **Table** | `seasonal_patterns[year]`, `seasonal_patterns[season_order]`, `seasonal_patterns[season_label]`, `[days]`, `[mean_value]`, `[p90_value]`, `[pct_poor_or_worse]` | Filter: `level` = city, `pollutant` = aqi. Click the `year` header to sort, then **Shift+click** the `season_order` header to add it as a second sort key, so rows run in time order (Winter, Summer, Monsoon, Post-monsoon per year). **Edit interactions**: slicer 1 doesn't filter this table either (it is always the city AQI). Title "Season summary (city AQI)". |
 
 ### Page 5 — Forecast
 
 | # | Visual | Fields | Settings |
 |---|---|---|---|
 | 1 | **Card** | `Forecast Run Date` | Title "Forecast made with data up to". |
-| 2 | **Line chart** (wide) | X: `dim_date[day]`; Y: `City AQI` and `Forecast AQI` | Filter pane (this visual): `latest_forecast[level]` = city, and `dim_date[days_from_latest]` **is greater than or equal to** -60 **and is less than or equal to** 7 (Advanced filtering). `days_from_latest` is 0 on the latest day with data, so this window moves by itself every day. Analytics pane → **Error bars** on `Forecast AQI`: Upper bound `Forecast Upper 80`, Lower bound `Forecast Lower 80`, style *Band*. Title "City AQI: last 60 days and 7-day forecast (80% interval)". |
-| 3 | **Table** | `latest_forecast[target_date]`, `[aqi_forecast]`, `[aqi_lower]`, `[aqi_upper]`, `[category_forecast]` | Filter: `level` = city. Conditional formatting on `aqi_forecast` background → rules by value (0–50 #00B050, 51–100 #92D050, 101–200 #FFFF00, 201–300 #FF9900, 301–400 #FF0000, 401–500 #C00000). Title "Next 7 days". |
-| 4 | **Cards ×3** | `Prophet MAE (city)`, `Seasonal Naive MAE (city)`, `Last Value MAE (city)` | Titles "Prophet MAE", "Seasonal naive MAE", "Last value MAE" (AQI points). |
+| 2 | **Line chart** (wide) | X: `dim_date[day]`; Y: `City AQI` and `Forecast AQI` | Filter pane (this visual): `latest_forecast[level]` = city, and `dim_date[days_from_latest]` **is greater than or equal to** -60 **and is less than or equal to** 7 (Advanced filtering). `days_from_latest` is 0 on the latest day with data, so this window moves by itself every day. Analytics pane → **Error bars**: Series `Forecast AQI` → **Enabled** on → Upper bound **+ Add data** → `Forecast Upper 80`, Lower bound → `Forecast Lower 80` (Relationship to measure: Absolute) → turn **Bar** and **Markers** off and **Error band** on, which draws the shaded interval. Title "City AQI: last 60 days and 7-day forecast (80% interval)". |
+| 3 | **Table** | `latest_forecast[target_date]`, `[aqi_forecast]`, `[aqi_lower]`, `[aqi_upper]`, `[category_forecast]` | Filter: `level` = city. Conditional formatting on `aqi_forecast` background → Format style **Rules**, based on field **Sum of aqi_forecast** (one row per day, so the sum is the value) (0–50 #00B050, 51–100 #92D050, 101–200 #FFFF00, 201–300 #FF9900, 301–400 #FF0000, 401–500 #C00000). Turn **Totals** off. Optional: set `latest_forecast[target_date]` format to `dd mmm yyyy` (Column tools) so the columns fit. Title "Next 7 days". |
+| 4 | **Cards ×3** | `Prophet MAE (city)`, `Seasonal Naive MAE (city)`, `Last Value MAE (city)` | Titles "Prophet MAE (AQI points)", "Seasonal naive MAE (AQI points)", "Last value MAE (AQI points)". |
 | 5 | **Clustered column chart** | X: `backtest_summary[horizon_days]`; Y: `backtest_summary[mae]` (Average); Legend: `backtest_summary[model]` | Filter: `level` = city. Title "Backtest: mean absolute error by days ahead". |
-| 6 | **Table** (small) | `latest_forecast[station_key]`, `[target_date]`, `[aqi_forecast]` | Filter: `level` = station, `horizon_days` = 1. Title "Tomorrow, per station". |
+| 6 | **Table** (small) | `latest_forecast[station_key]`, `[target_date]`, `[aqi_forecast]` | Filter: `level` = station, `horizon_days` = 1. Totals off. Title "Tomorrow, per station". |
 | 7 | **Text box** | — | "Forecast: Prophet on log(AQI) with weekly and yearly seasonality. Backtest: rolling origins over the last 26 weeks, compared with naive baselines. See the README for the numbers and caveats." |
 
 ---
 
 ## 6. Save, export, screenshots
 
-1. **File → Save as** → `powerbi/mumbai_air_quality.pbix`.
-2. **File → Save as** → type **Power BI project (.pbip)** → `powerbi/mumbai_air_quality.pbip`
-   (creates a folder with the report and semantic model as text, which diffs well in git).
-   If .pbip isn't offered: **File → Options and settings → Options → Preview features → Power BI
-   Project (.pbip) save option**, restart.
-3. **File → Export → Export to PDF** → `powerbi/mumbai_air_quality.pdf`.
-4. Screenshots: on each page press **Win + Shift + S**, save as
-   `docs/img/powerbi_overview.png`, `powerbi_neighbourhoods.png`, `powerbi_pollutants.png`,
-   `powerbi_seasonal.png`, `powerbi_forecast.png`.
-5. Commit them (the `.gitignore` already skips the .pbip local cache files).
+1. **File → Save as → Browse this device** → `powerbi/mumbai_air_quality.pbix` (the quick "Save
+   this file" box defaults to OneDrive; use **More options…** to pick the repo folder).
+2. **File → Save as → Browse this device** → Save as type **Power BI project files (*.pbip)** →
+   `mumbai_air_quality.pbip` in the same folder (creates `.Report` and `.SemanticModel` folders
+   with the report and model as text, which diffs well in git). Current versions offer .pbip
+   without a preview switch; older ones need **Options → Preview features → Power BI Project
+   (.pbip) save option** and a restart. Whichever you saved last is the file Power BI keeps
+   editing, so save the other one again after any change.
+3. **File → Export → Export to PDF**. This version doesn't ask where to save: it writes the PDF to
+   a temp folder and opens it in your PDF viewer; save or copy it from there to
+   `powerbi/mumbai_air_quality.pdf`.
+4. Screenshots: collapse the Filters / Visualizations / Data panes (the `>>` arrows) and the ribbon
+   (`^` at its right end) so the page is as large as possible, then on each page press
+   **Win + Shift + S** and save as `docs/img/powerbi_overview.png`, `powerbi_neighbourhoods.png`,
+   `powerbi_pollutants.png`, `powerbi_seasonal.png`, `powerbi_forecast.png`.
+5. Commit them. The `.gitignore` already skips the .pbip local cache files
+   (`.pbi/localSettings.json`, `.pbi/cache.abf`); delete the *DAXQueries* / *TMDLScripts* folders in
+   `.SemanticModel` if you used DAX query view or TMDL view for scratch work.
 
 ## 7. Refreshing
 
@@ -232,5 +282,8 @@ half-built set of tables.
 | "Couldn't connect" | `docker compose ps` should show `warehouse` healthy and port `0.0.0.0:5433->5432`. Port 5433 taken? Set `WAREHOUSE_PORT=5434` in `.env`, `docker compose up -d`, connect to `localhost:5434`. |
 | Tables empty | Run a day first: `docker compose run --rm pipeline run-day <yesterday>`. |
 | A visual shows one number for every row | A relationship is missing or points the wrong way — compare with 4.2. |
-| Map visual is greyed out | Your organisation disabled map visuals: **File → Options → Security → Map and filled map visuals** (personal accounts), or use a scatter chart of lon (X) / lat (Y). |
+| Map visual is greyed out / "Map and filled map visuals are disabled" | They're off by default now: **File → Options and settings → Options → Global → Security → Map and filled map visuals**, or use the scatter-chart fallback from page 1 row 9 (no sign-in, nothing sent to a map service). *Azure Map* shows "To display Azure Maps visuals, sign in" until you sign in to Power BI. |
+| Load fails with "PostgreSQL: Exception while reading from stream" / "another operation in the transaction failed" | The pipeline was rebuilding the marts while Power BI read them. Let the run finish, then **Apply changes** or **Home → Refresh**. |
+| "Error fetching data for this visual: the top level projections must be a valid measure or aggregation" on a table | A conditional-formatting rule is based on a plain column; base it on **Sum of** the column instead. |
+| A pie/column shows a "(Blank)" category for dominant pollutant | Use the current `Days Dominant` from `measures.dax` (it skips station-days with no dominant pollutant). |
 | Measure error "cannot find table" | The query wasn't renamed in step 3 (still `marts dim_date`). |

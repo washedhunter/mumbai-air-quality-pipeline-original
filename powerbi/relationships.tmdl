@@ -1,0 +1,61 @@
+createOrReplace
+
+	relationship rel_city_daily_aqi_day
+		fromColumn: city_daily_aqi.day
+		toColumn: dim_date.day
+
+	relationship rel_daily_station_aqi_day
+		fromColumn: daily_station_aqi.day
+		toColumn: dim_date.day
+
+	relationship rel_daily_station_aqi_station_key
+		fromColumn: daily_station_aqi.station_key
+		toColumn: dim_station.station_key
+
+	relationship rel_daily_station_aqi_dominant_pollutant
+		fromColumn: daily_station_aqi.dominant_pollutant
+		toColumn: dim_pollutant.pollutant
+
+	relationship rel_daily_station_aqi_category
+		fromColumn: daily_station_aqi.category
+		toColumn: dim_aqi_category.category
+
+	relationship rel_daily_pollutant_day
+		fromColumn: daily_pollutant.day
+		toColumn: dim_date.day
+
+	relationship rel_daily_pollutant_station_key
+		fromColumn: daily_pollutant.station_key
+		toColumn: dim_station.station_key
+
+	relationship rel_daily_pollutant_pollutant
+		fromColumn: daily_pollutant.pollutant
+		toColumn: dim_pollutant.pollutant
+
+	relationship rel_neighbourhood_pollutant_pollutant
+		fromColumn: neighbourhood_pollutant.pollutant
+		toColumn: dim_pollutant.pollutant
+
+	relationship rel_neighbourhood_pollutant_month_start
+		fromColumn: neighbourhood_pollutant.month_start
+		toColumn: dim_date.day
+
+	relationship rel_seasonal_patterns_pollutant
+		fromColumn: seasonal_patterns.pollutant
+		toColumn: dim_pollutant.pollutant
+
+	relationship rel_dominant_pollutant_station_key
+		fromColumn: dominant_pollutant.station_key
+		toColumn: dim_station.station_key
+
+	relationship rel_dominant_pollutant_pollutant
+		fromColumn: dominant_pollutant.pollutant
+		toColumn: dim_pollutant.pollutant
+
+	relationship rel_station_coverage_station_key
+		fromColumn: station_coverage.station_key
+		toColumn: dim_station.station_key
+
+	relationship rel_latest_forecast_target_date
+		fromColumn: latest_forecast.target_date
+		toColumn: dim_date.day
