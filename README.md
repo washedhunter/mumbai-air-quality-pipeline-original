@@ -5,6 +5,16 @@ OpenAQ each day, cleans them and loads them into PostgreSQL. SQL models compute 
 National AQI and daily, weekly and seasonal trends, Prophet makes a 7-day AQI forecast, and a
 Power BI report compares neighbourhoods and pollutants.
 
+## At a glance
+
+| | |
+|---|---|
+| **Problem** | Mumbai's air-quality readings are spread across dozens of stations and are hard to compare over time or between neighbourhoods. |
+| **What it does** | A daily automated pipeline collects readings from 39 stations, cleans them, calculates India's official AQI, forecasts the next 7 days, and feeds a Power BI dashboard. |
+| **Result** | Two years loaded (**742 daily runs, 8M+ readings**), and re-runs give identical results. The data show winter air is more than twice as bad as monsoon air (AQI 127 vs 55), with the worst day right after Diwali. |
+| **Built with** | Python, Apache Airflow, PostgreSQL / SQL, Prophet, Power BI, Docker, pytest, GitHub Actions |
+| **See it** | Chart and dashboard screenshots below; the full Power BI report is in [`powerbi/`](powerbi/) (PDF included). |
+
 ![Mumbai daily AQI with the 7-day forecast](docs/img/city_aqi.png)
 
 <!-- RESULTS_START -->
