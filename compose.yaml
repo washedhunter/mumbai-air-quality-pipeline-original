@@ -1,0 +1,149 @@
+# Local stack: Airflow 3.4 (LocalExecutor) + its own metadata Postgres + the warehouse Postgres.
+#   docker compose up -d --wait                         -> Airflow UI on http://localhost:8080
+#   docker compose run --rm pipeline run-day 2026-11-13 -> run one day and wait
+# The warehouse is published on localhost:5433 for Power BI / psql.
+name: mumbai-aq
+
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: docker/airflow.Dockerfile
+  image: mumbai-aq-airflow:local
+  env_file:
+    - path: .env
+      required: false
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__PARALLELISM: "8"
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg://airflow:airflow@airflow-db/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__DEFAULT_TIMEZONE: Asia/Kolkata
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:-local-dev-jwt-secret-change-me}
+    AIRFLOW__API_AUTH__JWT_ISSUER: mumbai-aq
+    # Local development only: the UI needs no login. Do not expose this port publicly.
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: "true"
+    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
+    AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL: "30"
+    WAREHOUSE_DSN: postgresql://aq:${WAREHOUSE_PASSWORD:-aq}@warehouse:5432/air_quality
+    LANDING_DIR: /opt/airflow/data/landing
+  user: "${AIRFLOW_UID:-50000}:0"
+  volumes:
+    - airflow-logs:/opt/airflow/logs
+    - landing:/opt/airflow/data
+  depends_on: &airflow-depends
+    airflow-db:
+      condition: service_healthy
+    warehouse:
+      condition: service_healthy
+
+services:
+  airflow-db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 20
+    restart: unless-stopped
+
+  warehouse:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: aq
+      POSTGRES_PASSWORD: ${WAREHOUSE_PASSWORD:-aq}
+      POSTGRES_DB: air_quality
+    ports:
+      - "${WAREHOUSE_PORT:-5433}:5432"
+    volumes:
+      - warehouse-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "aq", "-d", "air_quality"]
+      interval: 5s
+      retries: 20
+    restart: unless-stopped
+
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        set -e
+        airflow db migrate
+        aq init-db
+    restart: "no"
+
+  airflow-apiserver:
+    <<: *airflow-common
+    command: api-server
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    depends_on:
+      <<: *airflow-depends
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    depends_on:
+      <<: *airflow-depends
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type DagProcessorJob --hostname \"$${HOSTNAME}\""]
+      interval: 30s
+      timeout: 20s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    depends_on:
+      <<: *airflow-depends
+      airflow-init:
+        condition: service_completed_successfully
+
+  # One-off commands: docker compose run --rm pipeline <run-day|backfill|status|report|...>
+  pipeline:
+    <<: *airflow-common
+    entrypoint: ["aq"]
+    command: ["--help"]
+    profiles: ["cli"]
+    volumes:
+      - airflow-logs:/opt/airflow/logs
+      - landing:/opt/airflow/data
+      - ./reports:/opt/airflow/reports
+    depends_on:
+      <<: *airflow-depends
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  airflow-db-data:
+  warehouse-data:
+  airflow-logs:
+  landing:
