@@ -40,11 +40,13 @@ def test_dag_structure(dagbag):
 
 def test_schedule_is_daily_at_two_ist(dagbag):
     """Logical date = 02:00 IST on the day processed; it must match the CLI's trigger dates."""
+    import pendulum
+
     from mumbai_aq.cli import RUN_HOUR_IST, _logical
 
     dag = dagbag.dags["mumbai_air_quality"]
     assert dag.timetable.summary.startswith("0 2 * * *") or "0 2 * * *" in str(
         dag.timetable.summary
     )
-    assert dag.start_date.hour == RUN_HOUR_IST
+    assert pendulum.instance(dag.start_date).in_timezone("Asia/Kolkata").hour == RUN_HOUR_IST
     assert _logical(__import__("datetime").date(2026, 11, 13)) == "2026-11-13T02:00:00+05:30"
