@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    name: Lint, unit tests, SQL models on Postgres
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: aq
+          POSTGRES_PASSWORD: aq
+          POSTGRES_DB: air_quality
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U aq -d air_quality"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      TEST_WAREHOUSE_DSN: postgresql://aq:aq@localhost:5432/air_quality
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+      - name: Install
+        run: uv sync --locked
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Tests (unit + warehouse integration on the committed sample; OpenAQ mocked)
+        run: uv run pytest --cov=mumbai_aq --cov-report=term-missing
+      - name: SQL models + forecast via the CLI on the committed sample
+        env:
+          WAREHOUSE_DSN: postgresql://aq:aq@localhost:5432/air_quality
+          EXTRACT_SOURCE: sample
+          LANDING_DIR: ${{ runner.temp }}/landing
+          FORECAST_MIN_DAYS_CITY: "10"
+          FORECAST_MIN_DAYS_STATION: "10"
+          BACKTEST_WEEKS: "0"
+          BACKTEST_STATION_ORIGINS: "0"
+        run: |
+          uv run aq init-db
+          uv run aq local-run 2026-10-27 --to 2026-11-09
+          uv run aq report --out-dir ${{ runner.temp }}/reports
+          cat ${{ runner.temp }}/reports/coverage.md
+
+  airflow:
+    name: DAG import test + one sample day through Airflow
+    runs-on: ubuntu-latest
+    env:
+      # read by compose.yaml: replay the committed sample, forecast from its 14 days
+      EXTRACT_SOURCE: sample
+      FORECAST_MIN_DAYS_CITY: "10"
+      FORECAST_MIN_DAYS_STATION: "10"
+      BACKTEST_WEEKS: "1"
+      BACKTEST_STATION_ORIGINS: "0"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build image
+        run: docker compose build
+      - name: DAG import test (DagBag, no import errors)
+        run: docker compose run --rm --no-deps -w /opt/aq --entrypoint python pipeline -m pytest tests/test_dag.py -p no:cacheprovider
+      - name: Start the stack
+        run: docker compose up -d --wait --wait-timeout 300
+      - name: Backfill the sample range, run the last day (with forecast), then re-run it
+        run: |
+          docker compose run --rm pipeline backfill 2026-10-27 2026-11-08 --timeout-min 30
+          docker compose run --rm pipeline run-day 2026-11-09 --timeout-min 20
+          docker compose run --rm pipeline run-day 2026-11-09 --timeout-min 20
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --tail 200
+      - name: Stop
+        if: always()
+        run: docker compose down -v
