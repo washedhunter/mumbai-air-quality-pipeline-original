@@ -223,11 +223,19 @@ def local_run(
 @app.command()
 def report(
     out_dir: Path = typer.Option(Path("reports"), help="Where to write the reports"),
+    img_dir: Path | None = typer.Option(
+        None, help="Also draw the README charts here (e.g. docs/img)"
+    ),
 ) -> None:
     """Backtest MAE, station coverage and table counts from the warehouse, as Markdown/JSON."""
     from .reporting import write_reports
 
-    paths = write_reports(get_settings(), out_dir)
+    settings = get_settings()
+    paths = write_reports(settings, out_dir)
+    if img_dir is not None:
+        from .plots import write_plots
+
+        paths += write_plots(settings, img_dir)
     for p in paths:
         typer.echo(f"wrote {p}")
 
