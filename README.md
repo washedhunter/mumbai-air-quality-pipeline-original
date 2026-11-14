@@ -65,9 +65,22 @@ last-value. The city forecast made on 13 Nov 2026 (AQI 136 → 172 over the next
 |---|---|
 | ![Airflow grid view](docs/img/airflow_grid.png) | ![Neighbourhood x season](docs/img/neighbourhood_season.png) |
 
-**Power BI report:** built from [`powerbi/BUILD_GUIDE.md`](powerbi/BUILD_GUIDE.md). Screenshots go
-here once the `.pbix` has been built (Power BI Desktop is a Windows GUI app, so it isn't part of the
-automated build).
+**Power BI report:** built in Power BI Desktop from [`powerbi/BUILD_GUIDE.md`](powerbi/BUILD_GUIDE.md)
+on the warehouse as of 13 Nov 2026 (Import mode, last 12 months selected). Files:
+[`mumbai_air_quality.pbix`](powerbi/mumbai_air_quality.pbix), the same report as a Power BI project
+([`mumbai_air_quality.pbip`](powerbi/mumbai_air_quality.pbip), text files that diff in git) and a
+[PDF export](powerbi/mumbai_air_quality.pdf). Power BI Desktop is a Windows GUI app, so the report
+isn't part of the automated build.
+
+| Overview | Neighbourhoods |
+|---|---|
+| ![Power BI: Overview page](docs/img/powerbi_overview.png) | ![Power BI: Neighbourhoods page](docs/img/powerbi_neighbourhoods.png) |
+
+| Pollutants | Seasonal |
+|---|---|
+| ![Power BI: Pollutants page](docs/img/powerbi_pollutants.png) | ![Power BI: Seasonal page](docs/img/powerbi_seasonal.png) |
+
+![Power BI: Forecast page](docs/img/powerbi_forecast.png)
 
 ## Architecture
 
@@ -174,7 +187,8 @@ sql/schema/001_init.sql        raw / staging / core / marts / ops schemas, AQI S
 sql/models/                    10_daily_pollutant ... 96_backtest_summary
 config/stations.csv            44 OpenAQ location IDs -> 39 stations, neighbourhood, zone
 data/sample/                   14 days x 6 stations of real OpenAQ archive files (CI + key-free demo)
-powerbi/                       BUILD_GUIDE.md, measures.dax, theme.json
+powerbi/                       BUILD_GUIDE.md, measures.dax, theme.json, the built report
+                               (.pbix, .pbip project folders, PDF export)
 reports/                       backtest.md, coverage.md, summary.json from the last full run
 docker/airflow.Dockerfile      Airflow 3.4.0 + this package (installed within Airflow's constraints)
 compose.yaml                   Airflow (LocalExecutor) + metadata Postgres + warehouse Postgres
