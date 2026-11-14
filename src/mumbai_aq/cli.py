@@ -95,6 +95,40 @@ def _wait(days: list[date], timeout_min: int, poll_s: int = 15) -> dict[date, st
         time.sleep(poll_s)
 
 
+FINGERPRINT_COLUMNS = {
+    # business columns only: fetch/load timestamps and surrogate ids legitimately change on re-runs
+    "raw.payloads": "source, endpoint, location_id, sensor_id, target_date, http_status, sha256",
+    "staging.measurements": "target_date, location_id, sensor_id, parameter, units, value, ts_utc",
+    "core.hourly": "station_key, parameter, hour_ist, value, n_readings, n_sensors",
+    "marts.daily_pollutant": "*",
+    "marts.daily_station_aqi": "*",
+    "marts.city_daily_aqi": "*",
+    "marts.weekly_trends": "*",
+    "marts.seasonal_patterns": "*",
+    "marts.neighbourhood_pollutant": "*",
+    "marts.dominant_pollutant": "*",
+    "marts.station_coverage": "*",
+    "marts.forecasts": "run_date, level, station_key, target_date, aqi_forecast, aqi_lower, aqi_upper",
+    "marts.forecast_backtest": "*",
+}
+
+
+@app.command()
+def fingerprint() -> None:
+    """Row count + order-independent checksum per table. Run before and after a re-run: identical
+    output means the re-run changed nothing."""
+    from . import db
+
+    with db.connect(get_settings()) as conn, conn.cursor() as cur:
+        for table, cols in FINGERPRINT_COLUMNS.items():
+            cur.execute(
+                f"SELECT count(*), coalesce(sum(hashtextextended(x::text, 0)), 0) "
+                f"FROM (SELECT {cols} FROM {table}) x"
+            )
+            n, checksum = cur.fetchone()
+            typer.echo(f"{table:<32} {n:>12,}  {checksum}")
+
+
 def _print_counts() -> None:
     from . import db
 
