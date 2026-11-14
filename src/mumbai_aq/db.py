@@ -47,6 +47,17 @@ def migrate(conn: psycopg.Connection, settings: Settings) -> None:
         seed_reference(conn, settings)
 
 
+def ensure_schema(conn: psycopg.Connection, settings: Settings) -> None:
+    """Create the schema if this database has none yet (e.g. `aq local-run` on a fresh DB).
+
+    DAG tasks call this instead of migrate(): re-running the DDL on every task would take table
+    locks (CREATE INDEX IF NOT EXISTS takes a SHARE lock even when the index exists) that deadlock
+    against other runs' loads. Upgrades are applied by `aq init-db`, which the stack's airflow-init
+    service runs on every `docker compose up`."""
+    if conn.execute("SELECT to_regclass('raw.payloads')").fetchone()[0] is None:
+        migrate(conn, settings)
+
+
 def seed_reference(conn: psycopg.Connection, settings: Settings) -> None:
     with conn.cursor() as cur:
         cur.executemany(

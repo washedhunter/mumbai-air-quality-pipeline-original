@@ -302,3 +302,15 @@ def test_reports_with_a_backtest(loaded, tmp_path):
     finally:
         with db.connect(loaded) as conn:
             conn.execute("DELETE FROM marts.forecast_backtest WHERE run_date = %s", (run,))
+
+
+def test_concurrent_loads_do_not_deadlock(loaded):
+    """Several runs loading different days at once (a backfill) must not deadlock."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    days = [FIRST + timedelta(days=i) for i in range(6)]
+    for d in days:
+        pipeline.step_extract(d, loaded)
+    with ThreadPoolExecutor(6) as ex:
+        results = list(ex.map(lambda d: pipeline.step_load_raw(d, loaded), days))
+    assert all(r["staged_rows"] > 0 for r in results)

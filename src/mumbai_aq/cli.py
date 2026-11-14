@@ -97,7 +97,11 @@ def _wait(days: list[date], timeout_min: int, poll_s: int = 15) -> dict[date, st
 
 FINGERPRINT_COLUMNS = {
     # business columns only: fetch/load timestamps and surrogate ids legitimately change on re-runs
-    "raw.payloads": "source, endpoint, location_id, sensor_id, target_date, http_status, sha256",
+    # Readings payloads must be byte-identical on a re-run. The station list (endpoint
+    # 'locations') is re-downloaded each run and legitimately changes (it carries each station's
+    # last-seen time), so it is fingerprinted separately.
+    "raw.payloads WHERE endpoint <> 'locations'": "source, endpoint, location_id, sensor_id, target_date, http_status, sha256",
+    "raw.payloads WHERE endpoint = 'locations'": "source, endpoint, target_date, http_status, sha256",
     "staging.measurements": "target_date, location_id, sensor_id, parameter, units, value, ts_utc",
     "core.hourly": "station_key, parameter, hour_ist, value, n_readings, n_sensors",
     "marts.daily_pollutant": "*",
@@ -121,7 +125,7 @@ def fingerprint() -> None:
 
     with db.connect(get_settings()) as conn, conn.cursor() as cur:
         for table, cols in FINGERPRINT_COLUMNS.items():
-            cur.execute("SELECT to_regclass(%s)", (table,))
+            cur.execute("SELECT to_regclass(%s)", (table.split(" WHERE ")[0],))
             if cur.fetchone()[0] is None:
                 typer.echo(f"{table:<32} {'(not created yet)':>12}")
                 continue
@@ -130,7 +134,7 @@ def fingerprint() -> None:
                 f"FROM (SELECT {cols} FROM {table}) x"
             )
             n, checksum = cur.fetchone()
-            typer.echo(f"{table:<32} {n:>12,}  {checksum}")
+            typer.echo(f"{table:<48} {n:>12,}  {checksum}")
 
 
 def _print_counts() -> None:

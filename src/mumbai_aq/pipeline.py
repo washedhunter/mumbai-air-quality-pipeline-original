@@ -23,7 +23,7 @@ def step_validate(day: date, settings: Settings | None = None) -> dict:
 def step_load_raw(day: date, settings: Settings | None = None) -> dict:
     settings = settings or get_settings()
     with db.connect(settings) as conn:
-        db.migrate(conn, settings)
+        db.ensure_schema(conn, settings)
         return load.load_raw(conn, settings.landing_dir, day)
 
 
