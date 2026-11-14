@@ -121,6 +121,10 @@ def fingerprint() -> None:
 
     with db.connect(get_settings()) as conn, conn.cursor() as cur:
         for table, cols in FINGERPRINT_COLUMNS.items():
+            cur.execute("SELECT to_regclass(%s)", (table,))
+            if cur.fetchone()[0] is None:
+                typer.echo(f"{table:<32} {'(not created yet)':>12}")
+                continue
             cur.execute(
                 f"SELECT count(*), coalesce(sum(hashtextextended(x::text, 0)), 0) "
                 f"FROM (SELECT {cols} FROM {table}) x"
