@@ -1,0 +1,84 @@
+{
+ "day": "2026-11-03",
+ "source": "archive",
+ "entries": [
+  {
+   "source": "archive",
+   "endpoint": "archive_day",
+   "location_id": 6927,
+   "sensor_id": null,
+   "target_date": "2026-11-03",
+   "url": "https://openaq-data-archive.s3.amazonaws.com/records/csv.gz/locationid=6927/year=2026/month=11/location-6927-20261103.csv.gz",
+   "http_status": 200,
+   "content_type": "binary/octet-stream",
+   "file": "archive-6927.csv.gz",
+   "sha256": "3919bdffe9be0519e115b00944c851ef703390f35cc3575e2749ded4ca8e7804",
+   "fetched_at": "2026-11-14T08:06:37.607710+00:00"
+  },
+  {
+   "source": "archive",
+   "endpoint": "archive_day",
+   "location_id": 6945,
+   "sensor_id": null,
+   "target_date": "2026-11-03",
+   "url": "https://openaq-data-archive.s3.amazonaws.com/records/csv.gz/locationid=6945/year=2026/month=11/location-6945-20261103.csv.gz",
+   "http_status": 200,
+   "content_type": "binary/octet-stream",
+   "file": "archive-6945.csv.gz",
+   "sha256": "e1ac90bae61bc25d5bce61f3988a064cfcf3083830fa9ca5f91971c85a6f6cc9",
+   "fetched_at": "2026-11-14T08:06:37.899455+00:00"
+  },
+  {
+   "source": "archive",
+   "endpoint": "archive_day",
+   "location_id": 3409323,
+   "sensor_id": null,
+   "target_date": "2026-11-03",
+   "url": "https://openaq-data-archive.s3.amazonaws.com/records/csv.gz/locationid=3409323/year=2026/month=11/location-3409323-20261103.csv.gz",
+   "http_status": 200,
+   "content_type": "binary/octet-stream",
+   "file": "archive-3409323.csv.gz",
+   "sha256": "23ff87970c96cdd7193ea4a499c21ef09c0a2c30b6fbbe11454642a8f78d1d8d",
+   "fetched_at": "2026-11-14T08:06:38.137873+00:00"
+  },
+  {
+   "source": "archive",
+   "endpoint": "archive_day",
+   "location_id": 3409482,
+   "sensor_id": null,
+   "target_date": "2026-11-03",
+   "url": "https://openaq-data-archive.s3.amazonaws.com/records/csv.gz/locationid=3409482/year=2026/month=11/location-3409482-20261103.csv.gz",
+   "http_status": 404,
+   "content_type": "application/xml",
+   "file": null,
+   "sha256": null,
+   "fetched_at": "2026-11-14T08:06:38.370663+00:00"
+  },
+  {
+   "source": "archive",
+   "endpoint": "archive_day",
+   "location_id": 3409483,
+   "sensor_id": null,
+   "target_date": "2026-11-03",
+   "url": "https://openaq-data-archive.s3.amazonaws.com/records/csv.gz/locationid=3409483/year=2026/month=11/location-3409483-20261103.csv.gz",
+   "http_status": 200,
+   "content_type": "binary/octet-stream",
+   "file": "archive-3409483.csv.gz",
+   "sha256": "a0856905dc6eacefebb1be9e9798c90c21903220fc8361865bd1a4e6426cdb56",
+   "fetched_at": "2026-11-14T08:06:38.629678+00:00"
+  },
+  {
+   "source": "archive",
+   "endpoint": "archive_day",
+   "location_id": 3409510,
+   "sensor_id": null,
+   "target_date": "2026-11-03",
+   "url": "https://openaq-data-archive.s3.amazonaws.com/records/csv.gz/locationid=3409510/year=2026/month=11/location-3409510-20261103.csv.gz",
+   "http_status": 200,
+   "content_type": "binary/octet-stream",
+   "file": "archive-3409510.csv.gz",
+   "sha256": "beb3ed41dae20c9153db2b558356f243522c2c6dcd7ef83ff8dd53abcd561740",
+   "fetched_at": "2026-11-14T08:06:38.872907+00:00"
+  }
+ ]
+}
