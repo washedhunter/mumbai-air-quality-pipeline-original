@@ -6,7 +6,8 @@ DROP TABLE IF EXISTS marts.dim_date CASCADE;
 CREATE TABLE marts.dim_date AS
 WITH bounds AS (
     SELECT coalesce(min(day_ist), current_date) AS d0,
-           coalesce(max(day_ist), current_date) + 14 AS d1
+           coalesce(max(day_ist), current_date) + 14 AS d1,
+           coalesce(max(day_ist), current_date) AS latest
       FROM core.hourly
 )
 SELECT d::date                                       AS day,
@@ -19,7 +20,8 @@ SELECT d::date                                       AS day,
        to_char(d, 'Dy')                              AS weekday_name,
        s.season,
        s.season_order,
-       s.season || ' ' || extract(year FROM d)::int  AS season_label
+       s.season || ' ' || extract(year FROM d)::int  AS season_label,
+       (d::date - bounds.latest)                     AS days_from_latest  -- 0 = latest day with data
   FROM bounds
  CROSS JOIN LATERAL generate_series(bounds.d0, bounds.d1, interval '1 day') AS d
   JOIN core.seasons s ON s.month = extract(month FROM d)::int;
