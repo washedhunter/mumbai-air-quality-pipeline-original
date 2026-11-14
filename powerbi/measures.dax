@@ -1,0 +1,167 @@
+// DAX measures for the Mumbai Air Quality report.
+// Create a table called "_Measures" (Home > Enter data > OK with one empty column, then delete the
+// column) and add each measure below to it (Modeling > New measure). Table names match the
+// imported marts tables after the renames in BUILD_GUIDE.md step 3.
+
+// ---------- City AQI ----------
+City AQI =
+AVERAGE ( city_daily_aqi[aqi] )
+
+Latest Day =
+CALCULATE ( MAX ( city_daily_aqi[day] ), ALLSELECTED ( dim_date ) )
+
+Latest City AQI =
+VAR d = [Latest Day]
+RETURN
+    CALCULATE ( AVERAGE ( city_daily_aqi[aqi] ), REMOVEFILTERS ( dim_date ), city_daily_aqi[day] = d )
+
+Latest City Category =
+VAR d = [Latest Day]
+RETURN
+    CALCULATE ( MAX ( city_daily_aqi[category] ), REMOVEFILTERS ( dim_date ), city_daily_aqi[day] = d )
+
+Latest Dominant Pollutant =
+VAR d = [Latest Day]
+VAR p =
+    CALCULATE ( MAX ( city_daily_aqi[dominant_pollutant] ), REMOVEFILTERS ( dim_date ), city_daily_aqi[day] = d )
+RETURN
+    LOOKUPVALUE ( dim_pollutant[display_name], dim_pollutant[pollutant], p )
+
+City AQI 30d Ago =
+VAR d = [Latest Day] - 30
+RETURN
+    CALCULATE ( AVERAGE ( city_daily_aqi[aqi] ), REMOVEFILTERS ( dim_date ), city_daily_aqi[day] = d )
+
+City AQI Change vs 30d =
+[Latest City AQI] - [City AQI 30d Ago]
+
+Days With City AQI =
+COUNTROWS ( city_daily_aqi )
+
+Days Poor or Worse =
+CALCULATE ( COUNTROWS ( city_daily_aqi ), city_daily_aqi[aqi] > 200 )
+
+% Days Poor or Worse =
+DIVIDE ( [Days Poor or Worse], [Days With City AQI] )
+
+% Days Good or Satisfactory =
+DIVIDE ( CALCULATE ( COUNTROWS ( city_daily_aqi ), city_daily_aqi[aqi] <= 100 ), [Days With City AQI] )
+
+City AQI 7d Rolling =
+VAR d = MAX ( dim_date[day] )
+RETURN
+    CALCULATE (
+        AVERAGE ( city_daily_aqi[aqi] ),
+        REMOVEFILTERS ( dim_date ),
+        city_daily_aqi[day] > d - 7,
+        city_daily_aqi[day] <= d
+    )
+
+// ---------- Stations ----------
+Station AQI =
+AVERAGE ( daily_station_aqi[aqi] )
+
+Stations Reporting =
+CALCULATE ( DISTINCTCOUNT ( daily_station_aqi[station_key] ), NOT ISBLANK ( daily_station_aqi[aqi] ) )
+
+Stations Reporting (Latest Day) =
+VAR d = [Latest Day]
+RETURN
+    CALCULATE ( [Stations Reporting], REMOVEFILTERS ( dim_date ), daily_station_aqi[day] = d )
+
+Station Days Poor or Worse % =
+DIVIDE (
+    CALCULATE ( COUNTROWS ( daily_station_aqi ), daily_station_aqi[aqi] > 200 ),
+    CALCULATE ( COUNTROWS ( daily_station_aqi ), NOT ISBLANK ( daily_station_aqi[aqi] ) )
+)
+
+// ---------- Pollutants ----------
+Avg Concentration =
+AVERAGE ( daily_pollutant[concentration] )
+
+Avg Sub-index =
+AVERAGE ( daily_pollutant[sub_index] )
+
+Max Concentration =
+MAX ( daily_pollutant[concentration] )
+
+Concentration Unit =
+SELECTEDVALUE ( dim_pollutant[unit], "mixed units" )
+
+Days Dominant =
+COUNTROWS ( daily_station_aqi )
+
+Dominant Share =
+DIVIDE (
+    [Days Dominant],
+    CALCULATE (
+        COUNTROWS ( daily_station_aqi ),
+        REMOVEFILTERS ( dim_pollutant ),
+        NOT ISBLANK ( daily_station_aqi[dominant_pollutant] )
+    )
+)
+
+// ---------- Colour for conditional formatting (CPCB category colours) ----------
+AQI Colour =
+VAR v = [Station AQI]
+VAR c = IF ( ISBLANK ( v ), [City AQI], v )
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( c ), "#BFBFBF",
+        c <= 50, "#00B050",
+        c <= 100, "#92D050",
+        c <= 200, "#FFFF00",
+        c <= 300, "#FF9900",
+        c <= 400, "#FF0000",
+        "#C00000"
+    )
+
+Latest AQI Colour =
+VAR c = [Latest City AQI]
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( c ), "#BFBFBF",
+        c <= 50, "#00B050",
+        c <= 100, "#92D050",
+        c <= 200, "#FFFF00",
+        c <= 300, "#FF9900",
+        c <= 400, "#FF0000",
+        "#C00000"
+    )
+
+// ---------- Forecast ----------
+Forecast AQI =
+AVERAGE ( latest_forecast[aqi_forecast] )
+
+Forecast Lower 80 =
+AVERAGE ( latest_forecast[aqi_lower] )
+
+Forecast Upper 80 =
+AVERAGE ( latest_forecast[aqi_upper] )
+
+Forecast Run Date =
+MAX ( latest_forecast[run_date] )
+
+Actual or Forecast AQI =
+VAR actual = [City AQI]
+RETURN
+    IF ( ISBLANK ( actual ), CALCULATE ( [Forecast AQI], latest_forecast[level] = "city" ), actual )
+
+Backtest MAE =
+AVERAGE ( backtest_summary[mae] )
+
+Prophet MAE (city) =
+CALCULATE ( [Backtest MAE], backtest_summary[level] = "city", backtest_summary[model] = "prophet" )
+
+Seasonal Naive MAE (city) =
+CALCULATE ( [Backtest MAE], backtest_summary[level] = "city", backtest_summary[model] = "seasonal_naive_7d" )
+
+Last Value MAE (city) =
+CALCULATE ( [Backtest MAE], backtest_summary[level] = "city", backtest_summary[model] = "last_value" )
+
+Prophet vs Best Baseline =
+VAR best = MIN ( [Seasonal Naive MAE (city)], [Last Value MAE (city)] )
+RETURN
+    DIVIDE ( best - [Prophet MAE (city)], best )

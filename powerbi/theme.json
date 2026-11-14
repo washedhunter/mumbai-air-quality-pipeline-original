@@ -1,0 +1,44 @@
+{
+  "name": "Mumbai Air Quality",
+  "dataColors": [
+    "#1F4E79",
+    "#2E86AB",
+    "#F18F01",
+    "#C73E1D",
+    "#6A994E",
+    "#8E7DBE",
+    "#3B3B3B",
+    "#A23B72",
+    "#4F772D",
+    "#E9C46A"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#1B1B1B",
+  "tableAccent": "#1F4E79",
+  "good": "#00B050",
+  "neutral": "#FFFF00",
+  "bad": "#FF0000",
+  "maximum": "#C00000",
+  "center": "#FFFF00",
+  "minimum": "#00B050",
+  "textClasses": {
+    "title": { "fontFace": "Segoe UI Semibold", "fontSize": 14, "color": "#1B1B1B" },
+    "header": { "fontFace": "Segoe UI Semibold", "fontSize": 12, "color": "#1B1B1B" },
+    "label": { "fontFace": "Segoe UI", "fontSize": 10, "color": "#3B3B3B" },
+    "callout": { "fontFace": "Segoe UI Light", "fontSize": 32, "color": "#1F4E79" }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [{ "show": true, "color": { "solid": { "color": "#FFFFFF" } }, "transparency": 0 }],
+        "border": [{ "show": true, "color": { "solid": { "color": "#E1E4E8" } }, "radius": 6 }],
+        "title": [{ "show": true, "fontColor": { "solid": { "color": "#1B1B1B" } }, "fontSize": 12 }]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [{ "color": { "solid": { "color": "#F5F7FA" } }, "transparency": 0 }]
+      }
+    }
+  }
+}
