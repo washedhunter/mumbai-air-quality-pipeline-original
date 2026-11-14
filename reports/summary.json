@@ -1,0 +1,118 @@
+{
+  "row_counts": {
+    "raw.payloads": 26007,
+    "staging.measurements": 8066478,
+    "core.hourly": 2158385,
+    "marts.daily_pollutant": 107004,
+    "marts.daily_station_aqi": 19666,
+    "marts.city_daily_aqi": 588,
+    "marts.weekly_trends": 19211,
+    "marts.seasonal_patterns": 1516,
+    "marts.neighbourhood_pollutant": 3375,
+    "marts.dominant_pollutant": 1663,
+    "marts.station_coverage": 36,
+    "marts.forecasts": 217,
+    "marts.forecast_backtest": 3062
+  },
+  "hourly_span": {
+    "first_day": "2024-11-01",
+    "last_day": "2026-11-13",
+    "days": "732"
+  },
+  "city_aqi_days": 588,
+  "city_aqi_span": [
+    "2025-02-19",
+    "2026-11-13"
+  ],
+  "stations_with_data": 36,
+  "backtest_run_date": "2026-11-13",
+  "backtest_mae": [
+    {
+      "level": "city",
+      "model": "last_value",
+      "mae": 11.02,
+      "n": 159
+    },
+    {
+      "level": "city",
+      "model": "prophet",
+      "mae": 11.67,
+      "n": 159
+    },
+    {
+      "level": "city",
+      "model": "seasonal_naive_7d",
+      "mae": 13.61,
+      "n": 159
+    },
+    {
+      "level": "station",
+      "model": "last_value",
+      "mae": 15.15,
+      "n": 725
+    },
+    {
+      "level": "station",
+      "model": "prophet",
+      "mae": 14.3,
+      "n": 725
+    },
+    {
+      "level": "station",
+      "model": "seasonal_naive_7d",
+      "mae": 16.38,
+      "n": 725
+    }
+  ],
+  "latest_city_forecast": [
+    {
+      "target_date": "2026-11-14",
+      "aqi_forecast": "136",
+      "lower_80": "108",
+      "upper_80": "177",
+      "category": "Moderate"
+    },
+    {
+      "target_date": "2026-11-15",
+      "aqi_forecast": "144",
+      "lower_80": "111",
+      "upper_80": "184",
+      "category": "Moderate"
+    },
+    {
+      "target_date": "2026-11-16",
+      "aqi_forecast": "150",
+      "lower_80": "116",
+      "upper_80": "197",
+      "category": "Moderate"
+    },
+    {
+      "target_date": "2026-11-17",
+      "aqi_forecast": "164",
+      "lower_80": "125",
+      "upper_80": "207",
+      "category": "Moderate"
+    },
+    {
+      "target_date": "2026-11-18",
+      "aqi_forecast": "163",
+      "lower_80": "128",
+      "upper_80": "213",
+      "category": "Moderate"
+    },
+    {
+      "target_date": "2026-11-19",
+      "aqi_forecast": "170",
+      "lower_80": "133",
+      "upper_80": "215",
+      "category": "Moderate"
+    },
+    {
+      "target_date": "2026-11-20",
+      "aqi_forecast": "172",
+      "lower_80": "129",
+      "upper_80": "222",
+      "category": "Moderate"
+    }
+  ]
+}

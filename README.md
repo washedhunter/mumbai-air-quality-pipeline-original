@@ -8,7 +8,55 @@ Power BI report compares neighbourhoods and pollutants.
 ![Mumbai daily AQI with the 7-day forecast](docs/img/city_aqi.png)
 
 <!-- RESULTS_START -->
-__RESULTS__
+## Results
+
+All numbers below come from one run of this repo on 2026-11-14: a backfill of
+**2024-11-01 → 2026-11-12** through Airflow, then the daily run for 2026-11-13
+(`reports/` holds the generated tables; `uv run aq report` rebuilds them).
+
+**Pipeline**
+
+| | |
+|---|---|
+| Backfill | **742/742 daily runs green** in 71 min (8 runs in parallel), plus the daily run with forecast |
+| Re-runs | Re-running a 7-day range and re-running a single day (with forecast) left every table byte-for-byte identical (`aq fingerprint`, row counts + checksums) |
+| Stations | 44 OpenAQ location IDs → 39 stations (old/new IDs merged), 35 with at least one valid AQI day |
+| Volume | 26,007 raw payloads kept as received · 8.07 M pollutant readings · 2.16 M clean hourly values · 19,666 station-days |
+| Cleaning | 344 k readings (4.3%) removed: stuck sensors 205 k, incomplete hours 90 k, zero PM 27 k, impossible values 9.5 k, negatives 8.8 k, spikes 3.3 k, sentinels 140 |
+
+**Coverage actually achieved.** OpenAQ has no data for the CPCB/MPCB/IITM Mumbai stations
+between October 2022 (when their old IDs stop) and 18 February 2025 (when the new IDs start); the
+archive and the API agree. Only the US Consulate PM2.5 monitor reports in between, and one
+pollutant isn't enough for a CPCB AQI. So the city AQI series covers **19 Feb 2025 → 13 Nov 2026:
+588 days** (≥ 3 Mumbai stations each day; 18.6 on average), about 21 months. Per-station coverage
+is in [reports/coverage.md](reports/coverage.md).
+
+**What the data say (Mumbai, city mean of station AQIs)**
+
+| | |
+|---|---|
+| Mean AQI | 85 (Satisfactory); worst day 246 on 20 Oct 2025, the night after Diwali |
+| Days by category | Good 16% · Satisfactory 53% · Moderate 31% · Poor 0.3% |
+| Seasons (IMD) | Monsoon 55 · Summer 88 · Post-monsoon 115 · Winter 127 |
+| Dominant pollutant | PM10 on 69% of station-days, then O3 10%, PM2.5 9%, CO 9% |
+| Neighbourhoods | Most polluted: Deonar (mean 131, winter 178), BKC 112, Shivaji Nagar 108 · cleanest: Colaba 71 |
+
+**Forecast backtest** (rolling origins: 26 weekly origins for the city from May to Nov 2026, 6
+for each station; horizons 1–7 days; MAE in AQI points over cells every model predicted;
+[reports/backtest.md](reports/backtest.md)):
+
+| Level | Prophet | Last value | Seasonal naive (7 d) | Cells |
+|---|---|---|---|---|
+| City | 11.7 | **11.0** | 13.6 | 159 |
+| Stations | **14.3** | 15.2 | 16.4 | 725 |
+
+Prophet beats the seasonal-naive baseline everywhere and beats last-value for individual stations,
+but for the city average it is **slightly worse than simply repeating yesterday's value** except at
+7 days ahead. The backtest window is mostly the monsoon, when AQI barely moves, which favours
+last-value. The city forecast made on 13 Nov 2026 (AQI 136 → 172 over the next week, 80% interval
+108–222) is rising into the post-monsoon peak.
+
+![Backtest MAE by horizon](docs/img/backtest_mae.png)
 <!-- RESULTS_END -->
 
 ## Screenshots
@@ -85,7 +133,7 @@ docker compose run --rm pipeline run-day 2026-11-13
 ```
 
 - `backfill` creates one Airflow run per day through `airflow backfill create` and waits for all
-  of them (about 80 minutes for two years with 8 runs in parallel). Use any range; days without
+  of them (71 minutes for two years with 8 runs in parallel on an 8 GB Docker Desktop). Use any range; days without
   data simply have fewer rows.
 - `run-day` runs (or re-runs) one day, including the forecast. Use yesterday's date.
 - Airflow UI: <http://localhost:8080> (local only, no login). Warehouse: `localhost:5433`, database
@@ -166,13 +214,15 @@ The full reasoning is in [docs/DECISIONS.md](docs/DECISIONS.md). The short versi
 - **Station history is uneven.** Many stations only appear in OpenAQ from February 2025 (new
   CPCB IDs); some older IDs stopped in 2022. See the coverage table in
   [reports/coverage.md](reports/coverage.md). The city AQI is a mean over whichever Mumbai stations
-  reported that day (between __MIN_ST__ and __MAX_ST__ stations), so it is not a fixed panel.
+  reported that day (between 6 and 24 stations, 18.6 on average), so it is not a fixed panel.
 - **Unit labels are a judgement call** (see above). If OpenAQ fixes its CPCB units, set
   `PPB_LABEL_MEANS=true_ppb` and re-run.
 - **City AQI is our own definition** (mean of station AQIs), not an official CPCB city figure.
 - **Live data are unvalidated.** CPCB's real-time data are provisional; stuck sensors and spikes
   are removed by rules, not by a person.
-- **Forecast:** __FORECAST_LIMITATION__
+- **Forecast:** Prophet doesn't beat a last-value baseline for the city average (see Results);
+  it has no weather inputs, and the yearly seasonality rests on under two years of data. Treat the
+  forecast as a trend indicator, not an alert system.
 - **Next:** add weather covariates (wind, rain) to the forecast; alerting when a DQ warning repeats;
   a read-only database role for Power BI; publish the Power BI report.
 
