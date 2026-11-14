@@ -1,0 +1,45 @@
+location_id,station_key,station_name,operator,neighbourhood,zone,in_mumbai,provider,openaq_name,lat,lon
+2598,airoli_nmmc,Airoli (NMMC),NMMC,Airoli,Navi Mumbai,false,CPCB,Navi Mumbai Municipal Corporation Airoli,19.1494,72.9986
+5593,pimpleshwar_thane,"Pimpleshwar Mandir, Thane",MPCB,Thane,Thane,false,caaqm,"Pimpleshwar Mandir, Thane - MPCB",19.192056,72.958519
+6927,colaba,Colaba,MPCB,Colaba,Mumbai City,true,CPCB,"Colaba, Mumbai - MPCB",18.91,72.82
+6943,mahape,Mahape,MPCB,Mahape,Navi Mumbai,false,CPCB,"Mahape, Navi Mumbai - MPCB",19.113505,73.008978
+6945,kurla,Kurla,MPCB,Kurla,Eastern Suburbs,true,CPCB,"Kurla, Mumbai - MPCB",19.0863,72.8888
+6948,airport_t2,CSMI Airport T2,MPCB,Sahar (Airport),Western Suburbs,true,CPCB,"Chhatrapati Shivaji Intl. Airport (T2), Mumbai - MPCB",19.10078,72.87462
+6956,powai,Powai,MPCB,Powai,Eastern Suburbs,true,CPCB,"Powai, Mumbai - MPCB",19.1375,72.915056
+6959,worli_iitm,"Siddharth Nagar, Worli (IITM)",IITM,Worli,Mumbai City,true,CPCB,"Siddharth Nagar-Worli, Mumbai - IITM",19.000083,72.813993
+6965,borivali_east_mpcb,Borivali East (MPCB),MPCB,Borivali,Western Suburbs,true,CPCB,"Borivali East, Mumbai - MPCB",19.227474,72.864394
+6967,sion,Sion,MPCB,Sion,Mumbai City,true,CPCB,"Sion, Mumbai - MPCB",19.047,72.8746
+6987,vile_parle_west,Vile Parle West,MPCB,Vile Parle,Western Suburbs,true,CPCB,"Vile Parle West, Mumbai - MPCB",19.10861,72.83622
+7850,bandra_mpcb,Bandra (MPCB),MPCB,Bandra,Western Suburbs,true,caaqm,"Bandra, Mumbai - MPCB",19.0627,72.84614
+8039,us_consulate_bkc,US Consulate (BKC),US State Dept (AirNow),Bandra Kurla Complex,Western Suburbs,true,AirNow,Mumbai,19.07283,72.88261
+11602,bkc_iitm,Bandra Kurla Complex (IITM),IITM,Bandra Kurla Complex,Western Suburbs,true,caaqm,"Bandra Kurla Complex, Mumbai - IITM",19.053536,72.84643
+11604,deonar,Deonar,IITM,Deonar,Eastern Suburbs,true,caaqm,"Deonar, Mumbai - IITM",19.04946,72.923
+11606,borivali_east_iitm,Borivali East (IITM),IITM,Borivali,Western Suburbs,true,CPCB,"Borivali East, Mumbai - IITM",19.23241,72.86895
+11611,malad_west_iitm,Malad West (IITM),IITM,Malad,Western Suburbs,true,CPCB,"Malad West, Mumbai - IITM",19.19709,72.82204
+11612,nerul,Sector-19A Nerul,IITM,Nerul,Navi Mumbai,false,caaqm,"Sector-19A Nerul, Navi Mumbai - IITM",19.044,73.0325
+12024,chakala_andheri_east,"Chakala, Andheri East",IITM,Andheri,Western Suburbs,true,CPCB,"Chakala-Andheri East, Mumbai - IITM",19.11074,72.86084
+12039,khindipada_bhandup,"Khindipada, Bhandup West",IITM,Bhandup,Eastern Suburbs,true,CPCB,"Khindipada-Bhandup West, Mumbai - IITM",19.164394,72.928297
+12040,mulund_west,Mulund West,MPCB,Mulund,Eastern Suburbs,true,CPCB,"Mulund West, Mumbai - MPCB",19.175,72.9419
+12044,kandivali_east,Kandivali East,MPCB,Kandivali,Western Suburbs,true,CPCB,"Kandivali East, Mumbai - MPCB",19.2058,72.8682
+60661,worli_iitm,"Siddharth Nagar, Worli (IITM)",IITM,Worli,Mumbai City,true,caaqm,"Siddharth Nagar-Worli, Mumbai - IITM",19.000083,72.813993
+3409322,pimpleshwar_thane,"Pimpleshwar Mandir, Thane",MPCB,Thane,Thane,false,CPCB,"Pimpleshwar Mandir, Thane - MPCB",19.192056,72.958519
+3409323,worli_mpcb,Worli (MPCB),MPCB,Worli,Mumbai City,true,CPCB,"Worli, Mumbai - MPCB",18.993616,72.812811
+3409328,bkc_iitm,Bandra Kurla Complex (IITM),IITM,Bandra Kurla Complex,Western Suburbs,true,CPCB,"Bandra Kurla Complex, Mumbai - IITM",19.0627,72.84614
+3409329,deonar,Deonar,IITM,Deonar,Eastern Suburbs,true,CPCB,"Deonar, Mumbai - IITM",19.04946,72.923
+3409330,nerul,Sector-19A Nerul,IITM,Nerul,Navi Mumbai,false,CPCB,"Sector-19A Nerul, Navi Mumbai - IITM",19.044,73.0325
+3409469,kasarvadavali_thane,"Kasarvadavali, Thane",MPCB,Thane,Thane,false,CPCB,"Kasarvadavali, Thane - MPCB",19.26777,72.97182
+3409471,kalamboli,Sector-2E Kalamboli,MPCB,Kalamboli,Navi Mumbai,false,CPCB,"Sector-2E Kalamboli, Navi Mumbai - MPCB",19.02579,73.10297
+3409472,upvan_thane,"Upvan Fort, Thane",MPCB,Thane,Thane,false,CPCB,"Upvan Fort, Thane - MPCB",19.222279,72.957979
+3409476,cbd_belapur,CBD Belapur,MPCB,Belapur,Navi Mumbai,false,CPCB,"CBD Belapur, Belapur - MPCB",19.02439,73.040672
+3409477,kopripada_vashi,"Kopripada, Vashi",MPCB,Vashi,Navi Mumbai,false,CPCB,"Kopripada-Vashi, Navi Mumbai - MPCB",19.090337,73.014232
+3409478,bhayandar_west,Bhayandar West,MPCB,Bhayandar,Mira-Bhayandar,false,CPCB,"Bhayandar West, Mira-Bhayandar - MPCB",19.296481,72.840923
+3409479,mindspace_malad,"Mindspace, Malad West",MPCB,Malad,Western Suburbs,true,CPCB,"Mindspace-Malad West, Mumbai - MPCB",19.187866,72.830407
+3409482,bkc_mpcb,Bandra Kurla Complex (MPCB),MPCB,Bandra Kurla Complex,Western Suburbs,true,CPCB,"Bandra Kurla Complex, Mumbai - MPCB",19.065931,72.862131
+3409483,chembur,Chembur,MPCB,Chembur,Eastern Suburbs,true,CPCB,"Chembur, Mumbai - MPCB",19.036458,72.895437
+3409486,kherwadi_bandra_east,"Kherwadi, Bandra East",MPCB,Bandra,Western Suburbs,true,CPCB,"Kherwadi_Bandra East, Mumbai - MPCB",19.063214,72.845632
+3409487,sanpada,Sanpada,MPCB,Sanpada,Navi Mumbai,false,CPCB,"Sanpada, Navi Mumbai - MPCB",19.057575,73.015137
+3409510,byculla,Byculla (BMC),BMC,Byculla,Mumbai City,true,CPCB,"Byculla, Mumbai - BMC",18.9767,72.838
+3409511,shivaji_nagar,Shivaji Nagar (BMC),BMC,Shivaji Nagar,Eastern Suburbs,true,CPCB,"Shivaji Nagar, Mumbai - BMC",19.060498,72.923356
+3409512,kandivali_west_bmc,Kandivali West (BMC),BMC,Kandivali,Western Suburbs,true,CPCB,"Kandivali West, Mumbai - BMC",19.215859,72.831718
+3409513,sewri,Sewri (BMC),BMC,Sewri,Mumbai City,true,CPCB,"Sewri, Mumbai - BMC",19.000084,72.85673
+3409514,ghatkopar,Ghatkopar (BMC),BMC,Ghatkopar,Eastern Suburbs,true,CPCB,"Ghatkopar, Mumbai - BMC",19.083694,72.920967
