@@ -1,0 +1,60 @@
+table dim_pollutant
+	lineageTag: 0765370f-bb5a-43d7-b0c4-13eadbd31015
+
+	column pollutant
+		dataType: string
+		lineageTag: f93f474c-6b6f-4598-b738-3870a1da1275
+		summarizeBy: none
+		sourceColumn: pollutant
+
+		annotation SummarizationSetBy = Automatic
+
+	column display_name
+		dataType: string
+		lineageTag: 72074e91-5555-4807-bc12-9d92cbfd56a1
+		summarizeBy: none
+		sourceColumn: display_name
+		sortByColumn: sort_order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column unit
+		dataType: string
+		lineageTag: 6198a686-73e2-4680-a478-f0aa991bde20
+		summarizeBy: none
+		sourceColumn: unit
+
+		annotation SummarizationSetBy = Automatic
+
+	column averaging
+		dataType: string
+		lineageTag: f7ec9458-945d-44a4-9355-d773ade69e54
+		summarizeBy: none
+		sourceColumn: averaging
+
+		annotation SummarizationSetBy = Automatic
+
+	column sort_order
+		dataType: int64
+		formatString: 0
+		lineageTag: 01d76b5d-6ac6-412d-af51-2821e1a321c9
+		summarizeBy: sum
+		sourceColumn: sort_order
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_pollutant = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "air_quality"),
+				    marts_dim_pollutant = Source{[Schema="marts",Item="dim_pollutant"]}[Data]
+				in
+				    marts_dim_pollutant
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,137 @@
+table dim_date
+	lineageTag: bc3c7101-fb58-4dec-85e1-0af521ecd614
+	dataCategory: Time
+
+	column day
+		dataType: dateTime
+		isKey
+		formatString: Long Date
+		lineageTag: e80647df-254f-43a5-b789-6f458657884c
+		summarizeBy: none
+		sourceColumn: day
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column year
+		dataType: int64
+		formatString: 0
+		lineageTag: 4f3398fe-c37f-4354-a9d2-4141d2da4946
+		summarizeBy: sum
+		sourceColumn: year
+
+		annotation SummarizationSetBy = Automatic
+
+	column month
+		dataType: int64
+		formatString: 0
+		lineageTag: cb906bfe-1cba-4fb8-807d-0ac36ca3ee04
+		summarizeBy: sum
+		sourceColumn: month
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_name
+		dataType: string
+		lineageTag: 445b0826-3618-4d9a-b2b1-bd3795a0ce5e
+		summarizeBy: none
+		sourceColumn: month_name
+		sortByColumn: month
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_start
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 151db328-5e8f-4c1d-8f14-d215df6eee1b
+		summarizeBy: none
+		sourceColumn: month_start
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column week_start
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: bfdce167-b4b3-4138-a14a-e222672cd1dc
+		summarizeBy: none
+		sourceColumn: week_start
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column weekday_number
+		dataType: int64
+		formatString: 0
+		lineageTag: 0c4edd0b-db23-4c88-87f1-ffc87d9f40ce
+		summarizeBy: sum
+		sourceColumn: weekday_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column weekday_name
+		dataType: string
+		lineageTag: b3a006b8-b344-4b5f-a085-d08a9c0ee5fb
+		summarizeBy: none
+		sourceColumn: weekday_name
+		sortByColumn: weekday_number
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column season
+		dataType: string
+		lineageTag: e3a3b0af-0b50-4416-89ab-fb40ee7ca0fe
+		summarizeBy: none
+		sourceColumn: season
+		sortByColumn: season_order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column season_order
+		dataType: int64
+		formatString: 0
+		lineageTag: 2e9eba7c-04c2-4c1d-957a-fa4d73fdf889
+		summarizeBy: sum
+		sourceColumn: season_order
+
+		annotation SummarizationSetBy = Automatic
+
+	column season_label
+		dataType: string
+		lineageTag: f070ad1c-a96d-4b07-bf00-ba6adb5d5a30
+		summarizeBy: none
+		sourceColumn: season_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column days_from_latest
+		dataType: int64
+		formatString: 0
+		lineageTag: f316e2a7-a746-478e-971a-94f0b4c5cd1c
+		summarizeBy: sum
+		sourceColumn: days_from_latest
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_date = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "air_quality"),
+				    marts_dim_date = Source{[Schema="marts",Item="dim_date"]}[Data]
+				in
+				    marts_dim_date
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

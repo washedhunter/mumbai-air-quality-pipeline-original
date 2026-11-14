@@ -1,0 +1,134 @@
+table seasonal_patterns
+	lineageTag: 7699e9a1-e0f9-4ed5-be96-6c22fe0e2aba
+
+	column level
+		dataType: string
+		lineageTag: 5e2b81fa-e071-4266-834e-65ecf7733a16
+		summarizeBy: none
+		sourceColumn: level
+
+		annotation SummarizationSetBy = Automatic
+
+	column area
+		dataType: string
+		lineageTag: 81d350e2-e76d-460f-a1c6-44a8969508ac
+		summarizeBy: none
+		sourceColumn: area
+
+		annotation SummarizationSetBy = Automatic
+
+	column zone
+		dataType: string
+		lineageTag: ded25610-84c7-4027-99aa-9fca61693ddc
+		summarizeBy: none
+		sourceColumn: zone
+
+		annotation SummarizationSetBy = Automatic
+
+	column season
+		dataType: string
+		lineageTag: ab5e635d-7fe6-4440-b61f-592bb012247a
+		summarizeBy: none
+		sourceColumn: season
+		sortByColumn: season_order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column season_order
+		dataType: int64
+		formatString: 0
+		lineageTag: e48b44f8-9a9d-4e04-b8bd-dfe5ce69430f
+		summarizeBy: sum
+		sourceColumn: season_order
+
+		annotation SummarizationSetBy = Automatic
+
+	column year
+		dataType: int64
+		formatString: 0
+		lineageTag: 52b40736-5c84-47f8-bfa9-0fbd73b54578
+		summarizeBy: sum
+		sourceColumn: year
+
+		annotation SummarizationSetBy = Automatic
+
+	column season_label
+		dataType: string
+		lineageTag: 95137927-bf0b-4aad-8eea-79883d15551a
+		summarizeBy: none
+		sourceColumn: season_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column pollutant
+		dataType: string
+		lineageTag: 4dac59ae-8f07-48c1-a5c0-0f9ad00c0d72
+		summarizeBy: none
+		sourceColumn: pollutant
+
+		annotation SummarizationSetBy = Automatic
+
+	column mean_value
+		dataType: double
+		lineageTag: aebc1f95-5440-41c0-ab24-0cecc5dd4f62
+		summarizeBy: sum
+		sourceColumn: mean_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column p90_value
+		dataType: double
+		lineageTag: 647045f9-4cbe-4c99-b006-36f12ed3d32a
+		summarizeBy: sum
+		sourceColumn: p90_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column mean_sub_index
+		dataType: double
+		lineageTag: 33e0e4d6-5cad-4aee-8aee-90493ae24f93
+		summarizeBy: sum
+		sourceColumn: mean_sub_index
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column days
+		dataType: int64
+		formatString: 0
+		lineageTag: 1ab644d0-cf2d-4080-a4bc-24b15fd9be98
+		summarizeBy: sum
+		sourceColumn: days
+
+		annotation SummarizationSetBy = Automatic
+
+	column pct_poor_or_worse
+		dataType: double
+		lineageTag: adb90e73-a47a-455b-95ee-038648a9dbcd
+		summarizeBy: sum
+		sourceColumn: pct_poor_or_worse
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition seasonal_patterns = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "air_quality"),
+				    marts_seasonal_patterns = Source{[Schema="marts",Item="seasonal_patterns"]}[Data]
+				in
+				    marts_seasonal_patterns
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

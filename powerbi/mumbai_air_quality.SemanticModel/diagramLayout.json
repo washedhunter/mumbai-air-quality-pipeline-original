@@ -1,0 +1,230 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 349.07777018245167,
+        "y": 332.38878276500935
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 1279.6451203339529,
+            "y": 586.52379150093566
+          },
+          "nodeIndex": "backtest_summary",
+          "nodeLineageTag": "265a8f82-e5e0-4024-a358-db2ccf4d5f0a",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1563.6451203339529,
+            "y": 562.52379150093566
+          },
+          "nodeIndex": "city_daily_aqi",
+          "nodeLineageTag": "bc3172be-197c-4349-9c03-8394a11211cb",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 505.67657269408352,
+            "y": 574.5938590046743
+          },
+          "nodeIndex": "daily_pollutant",
+          "nodeLineageTag": "bbde148e-b6f6-4130-b384-cf3cde1b6e0d",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 350.02327809232872,
+            "y": 225.02095370718189
+          },
+          "nodeIndex": "daily_station_aqi",
+          "nodeLineageTag": "33645cf7-5031-4167-b6f4-91f8c215d72b",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 113.8017918137765,
+            "y": 574.325018780221
+          },
+          "nodeIndex": "dim_aqi_category",
+          "nodeLineageTag": "480b87bb-e4de-4322-9d3b-175b7992e1c8",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1847.6451203339529,
+            "y": 548.52379150093566
+          },
+          "nodeIndex": "dim_date",
+          "nodeLineageTag": "bc3c7101-fb58-4dec-85e1-0af521ecd614",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 337.05710358212366,
+            "y": 899.66680052756033
+          },
+          "nodeIndex": "dim_pollutant",
+          "nodeLineageTag": "0765370f-bb5a-43d7-b0c4-13eadbd31015",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 758.89944062378913,
+            "y": 225.04224539248958
+          },
+          "nodeIndex": "dim_station",
+          "nodeLineageTag": "4847d341-e828-4343-ad10-4f4f115e306f",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 802.07339118341167,
+            "y": 793.59111613000425
+          },
+          "nodeIndex": "dominant_pollutant",
+          "nodeLineageTag": "fbe0c2db-d412-4d83-9d9f-1b647eef8e44",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2131.6451203339529,
+            "y": 550.52379150093566
+          },
+          "nodeIndex": "forecast_backtest",
+          "nodeLineageTag": "5455645a-ac28-427d-bc41-e837f6f71b87",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2415.6451203339529,
+            "y": 548.52379150093566
+          },
+          "nodeIndex": "latest_forecast",
+          "nodeLineageTag": "ccb22d89-17b7-48de-bf1e-c29dc3795fb9",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 851.31680843286733,
+            "y": 1044.0951212140058
+          },
+          "nodeIndex": "neighbourhood_pollutant",
+          "nodeLineageTag": "b2b08981-19fa-4975-bd64-58d01ce542e3",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 1047.0475830018713
+          },
+          "nodeIndex": "seasonal_patterns",
+          "nodeLineageTag": "7699e9a1-e0f9-4ed5-be96-6c22fe0e2aba",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1045.6451203339529,
+            "y": 440.23885397804384
+          },
+          "nodeIndex": "station_coverage",
+          "nodeLineageTag": "b602321f-90ee-4083-894d-4d3b89c16097",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 738.61860883090151,
+            "y": -50
+          },
+          "nodeIndex": "weekly_trends",
+          "nodeLineageTag": "c92fe6e2-51e5-4cde-a73a-471bc7da7a7b",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2649.6451203339529,
+            "y": 646.52379150093566
+          },
+          "nodeIndex": "_Measures",
+          "nodeLineageTag": "55dbd89d-4319-4228-ab87-ad2c088761e2",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 57.522999229313896,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

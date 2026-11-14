@@ -1,0 +1,70 @@
+table dim_aqi_category
+	lineageTag: 480b87bb-e4de-4322-9d3b-175b7992e1c8
+
+	column category
+		dataType: string
+		lineageTag: 359b87e9-b602-43ce-bb30-bad8ecfae468
+		summarizeBy: none
+		sourceColumn: category
+		sortByColumn: sort_order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column sort_order
+		dataType: int64
+		formatString: 0
+		lineageTag: 764084c4-b816-416a-bfeb-b37f0521fafa
+		summarizeBy: sum
+		sourceColumn: sort_order
+
+		annotation SummarizationSetBy = Automatic
+
+	column aqi_min
+		dataType: int64
+		formatString: 0
+		lineageTag: 0e59d939-e8cf-46bc-9d20-b26a24fec7ec
+		summarizeBy: sum
+		sourceColumn: aqi_min
+
+		annotation SummarizationSetBy = Automatic
+
+	column aqi_max
+		dataType: int64
+		formatString: 0
+		lineageTag: fcac2d5c-d16b-4fe4-ac7e-b0d07d40ed74
+		summarizeBy: sum
+		sourceColumn: aqi_max
+
+		annotation SummarizationSetBy = Automatic
+
+	column colour
+		dataType: string
+		lineageTag: 444639ab-74f8-4c72-a8b8-f6540c10d2ad
+		summarizeBy: none
+		sourceColumn: colour
+
+		annotation SummarizationSetBy = Automatic
+
+	column health_impact
+		dataType: string
+		lineageTag: 875d1216-f3e9-49f8-94cf-27884dbeca74
+		summarizeBy: none
+		sourceColumn: health_impact
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_aqi_category = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "air_quality"),
+				    marts_dim_aqi_category = Source{[Schema="marts",Item="dim_aqi_category"]}[Data]
+				in
+				    marts_dim_aqi_category
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,179 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "p2_table",
+  "position": {
+    "x": 748,
+    "y": 444,
+    "z": 8000,
+    "height": 232,
+    "width": 516,
+    "tabOrder": 8000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "station_coverage"
+                    }
+                  },
+                  "Property": "station_name"
+                }
+              },
+              "queryRef": "station_coverage.station_name",
+              "nativeQueryRef": "station_name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "station_coverage"
+                    }
+                  },
+                  "Property": "neighbourhood"
+                }
+              },
+              "queryRef": "station_coverage.neighbourhood",
+              "nativeQueryRef": "neighbourhood"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "station_coverage"
+                    }
+                  },
+                  "Property": "first_day"
+                }
+              },
+              "queryRef": "station_coverage.first_day",
+              "nativeQueryRef": "first_day"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "station_coverage"
+                    }
+                  },
+                  "Property": "last_day"
+                }
+              },
+              "queryRef": "station_coverage.last_day",
+              "nativeQueryRef": "last_day"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "station_coverage"
+                    }
+                  },
+                  "Property": "days_with_aqi"
+                }
+              },
+              "queryRef": "station_coverage.days_with_aqi",
+              "nativeQueryRef": "days_with_aqi"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "station_coverage"
+                    }
+                  },
+                  "Property": "pct_days_with_aqi"
+                }
+              },
+              "queryRef": "station_coverage.pct_days_with_aqi",
+              "nativeQueryRef": "pct_days_with_aqi"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "station_coverage"
+                    }
+                  },
+                  "Property": "pollutants"
+                }
+              },
+              "queryRef": "station_coverage.pollutants",
+              "nativeQueryRef": "pollutants"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Station coverage'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12.0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

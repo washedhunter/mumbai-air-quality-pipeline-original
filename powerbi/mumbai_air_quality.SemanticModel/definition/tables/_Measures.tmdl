@@ -1,0 +1,218 @@
+table _Measures
+	lineageTag: 55dbd89d-4319-4228-ab87-ad2c088761e2
+
+	measure 'City AQI' = AVERAGE ( city_daily_aqi[aqi] )
+		formatString: 0
+		lineageTag: a870f330-834b-4da4-8f2f-a1d20dc35c14
+
+	measure 'Latest Day' = CALCULATE ( MAX ( city_daily_aqi[day] ), ALLSELECTED ( dim_date ) )
+		formatString: dd mmm yyyy
+		lineageTag: 1dd39581-0d25-4747-a73f-cd081af119c5
+
+	measure 'Latest City AQI' =
+			VAR d = [Latest Day]
+			RETURN
+			    CALCULATE ( AVERAGE ( city_daily_aqi[aqi] ), REMOVEFILTERS ( dim_date ), city_daily_aqi[day] = d )
+		formatString: 0
+		lineageTag: 96976fc1-ba72-4d6e-97a6-c3036b685f1a
+
+	measure 'Latest City Category' =
+			VAR d = [Latest Day]
+			RETURN
+			    CALCULATE ( MAX ( city_daily_aqi[category] ), REMOVEFILTERS ( dim_date ), city_daily_aqi[day] = d )
+		lineageTag: b39123df-c240-4363-9743-f12cc3bf7fc2
+
+	measure 'Latest Dominant Pollutant' =
+			VAR d = [Latest Day]
+			VAR p =
+			    CALCULATE ( MAX ( city_daily_aqi[dominant_pollutant] ), REMOVEFILTERS ( dim_date ), city_daily_aqi[day] = d )
+			RETURN
+			    LOOKUPVALUE ( dim_pollutant[display_name], dim_pollutant[pollutant], p )
+		lineageTag: cb82ce04-36be-4516-b297-da58e133d6d3
+
+	measure 'City AQI 30d Ago' =
+			VAR d = [Latest Day] - 30
+			RETURN
+			    CALCULATE ( AVERAGE ( city_daily_aqi[aqi] ), REMOVEFILTERS ( dim_date ), city_daily_aqi[day] = d )
+		formatString: 0
+		lineageTag: c6f05b80-54b1-4af3-a3ff-db554ecdc1f4
+
+	measure 'City AQI Change vs 30d' = [Latest City AQI] - [City AQI 30d Ago]
+		formatString: 0
+		lineageTag: 3fdd61f7-678f-44e8-96dc-4cc0c961ef41
+
+	measure 'Days With City AQI' = COUNTROWS ( city_daily_aqi )
+		formatString: 0
+		lineageTag: df5f6c4f-9127-4f31-ad72-b3841362a810
+
+	measure 'Days Poor or Worse' = CALCULATE ( COUNTROWS ( city_daily_aqi ), city_daily_aqi[aqi] > 200 )
+		formatString: 0
+		lineageTag: 0ca51907-0f78-4d1e-8b3f-321df0cc1365
+
+	measure '% Days Poor or Worse' = DIVIDE ( COALESCE ( [Days Poor or Worse], 0 ), [Days With City AQI] )
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: a33632a2-85c1-4f07-8e3a-cb72e7e51736
+
+	measure '% Days Good or Satisfactory' = DIVIDE ( COALESCE ( CALCULATE ( COUNTROWS ( city_daily_aqi ), city_daily_aqi[aqi] <= 100 ), 0 ), [Days With City AQI] )
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: c7c4d099-fbfd-4ca6-bbb9-03efda4100c6
+
+	measure 'City AQI 7d Rolling' =
+			VAR d = MAX ( dim_date[day] )
+			RETURN
+			    CALCULATE (
+			        AVERAGE ( city_daily_aqi[aqi] ),
+			        REMOVEFILTERS ( dim_date ),
+			        city_daily_aqi[day] > d - 7,
+			        city_daily_aqi[day] <= d
+			    )
+		formatString: 0
+		lineageTag: ad9a4bf5-0b2f-407e-914f-257e00d8301b
+
+	measure 'Station AQI' = AVERAGE ( daily_station_aqi[aqi] )
+		formatString: 0
+		lineageTag: bec5c090-b321-4054-be01-d21d1198311b
+
+	measure 'Stations Reporting' = CALCULATE ( DISTINCTCOUNT ( daily_station_aqi[station_key] ), NOT ISBLANK ( daily_station_aqi[aqi] ) )
+		formatString: 0
+		lineageTag: 5981f005-80d8-4cbf-92a7-5f7c80af7324
+
+	measure 'Mumbai Stations (Latest Day)' =
+			VAR d = [Latest Day]
+			RETURN
+			    CALCULATE ( MAX ( city_daily_aqi[n_stations] ), REMOVEFILTERS ( dim_date ), city_daily_aqi[day] = d )
+		formatString: 0
+		lineageTag: fab34bc8-4441-448d-a4c3-fb806d8bc695
+
+	measure 'Station Days Poor or Worse %' =
+			DIVIDE (
+			    CALCULATE ( COUNTROWS ( daily_station_aqi ), daily_station_aqi[aqi] > 200 ),
+			    CALCULATE ( COUNTROWS ( daily_station_aqi ), NOT ISBLANK ( daily_station_aqi[aqi] ) )
+			)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 808373d4-faf0-402d-91bb-dfd7364e61ea
+
+	measure 'Avg Concentration' = AVERAGE ( daily_pollutant[concentration] )
+		formatString: 0.0
+		lineageTag: e523c931-cd75-4ec3-977c-90f252fd8ff4
+
+	measure 'Avg Sub-index' = AVERAGE ( daily_pollutant[sub_index] )
+		formatString: 0
+		lineageTag: 04217678-1aa1-4cb6-9943-3924fc6ddc0e
+
+	measure 'Max Concentration' = MAX ( daily_pollutant[concentration] )
+		formatString: 0.0
+		lineageTag: 4104be32-1911-4fd2-8ffb-04d2f84a1c12
+
+	measure 'Concentration Unit' = SELECTEDVALUE ( dim_pollutant[unit], "mixed units" )
+		lineageTag: a9f97517-63f2-4ddb-815b-0c82eac93e4d
+
+	measure 'Days Dominant' = CALCULATE ( COUNTROWS ( daily_station_aqi ), NOT ISBLANK ( daily_station_aqi[dominant_pollutant] ) )
+		formatString: 0
+		lineageTag: d33f3677-4e38-487c-a46f-615fd7dcf080
+
+	measure 'Dominant Share' =
+			DIVIDE (
+			    [Days Dominant],
+			    CALCULATE (
+			        COUNTROWS ( daily_station_aqi ),
+			        REMOVEFILTERS ( dim_pollutant ),
+			        NOT ISBLANK ( daily_station_aqi[dominant_pollutant] )
+			    )
+			)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 3cd3a2f6-24c0-41a6-a632-552e56eee360
+
+	measure 'AQI Colour' =
+			VAR v = [Station AQI]
+			VAR c = IF ( ISBLANK ( v ), [City AQI], v )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( c ), "#BFBFBF",
+			        c <= 50, "#00B050",
+			        c <= 100, "#92D050",
+			        c <= 200, "#FFFF00",
+			        c <= 300, "#FF9900",
+			        c <= 400, "#FF0000",
+			        "#C00000"
+			    )
+		lineageTag: 207f62d7-2a35-4e68-bb31-4d479a7eec41
+
+	measure 'Latest AQI Colour' =
+			VAR c = [Latest City AQI]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( c ), "#BFBFBF",
+			        c <= 50, "#00B050",
+			        c <= 100, "#92D050",
+			        c <= 200, "#FFFF00",
+			        c <= 300, "#FF9900",
+			        c <= 400, "#FF0000",
+			        "#C00000"
+			    )
+		lineageTag: a7d6cca8-d16b-4a99-9342-c0e948d52d5e
+
+	measure 'Forecast AQI' = AVERAGE ( latest_forecast[aqi_forecast] )
+		formatString: 0
+		lineageTag: 64412c19-acb0-4698-bc46-a8ede898f72e
+
+	measure 'Forecast Lower 80' = AVERAGE ( latest_forecast[aqi_lower] )
+		formatString: 0
+		lineageTag: dfe4b143-75fe-4881-a1d7-791e1f730c8c
+
+	measure 'Forecast Upper 80' = AVERAGE ( latest_forecast[aqi_upper] )
+		formatString: 0
+		lineageTag: b8cd1f8c-a67d-4629-a067-782d9499f982
+
+	measure 'Forecast Run Date' = MAX ( latest_forecast[run_date] )
+		formatString: dd mmm yyyy
+		lineageTag: c9e1f41e-b09a-4a2d-9602-d1cab61068f5
+
+	measure 'Actual or Forecast AQI' =
+			VAR actual = [City AQI]
+			RETURN
+			    IF ( ISBLANK ( actual ), CALCULATE ( [Forecast AQI], latest_forecast[level] = "city" ), actual )
+		formatString: 0
+		lineageTag: ca17002e-8d78-460f-81d4-d077e49d23ba
+
+	measure 'Backtest MAE' =
+			DIVIDE (
+			    SUMX ( backtest_summary, backtest_summary[mae] * backtest_summary[n] ),
+			    SUM ( backtest_summary[n] )
+			)
+		formatString: 0
+		lineageTag: b39fb868-79ba-48e0-ac37-fb823f9b84e8
+
+	measure 'Prophet MAE (city)' = CALCULATE ( [Backtest MAE], backtest_summary[level] = "city", backtest_summary[model] = "prophet" )
+		formatString: 0
+		lineageTag: 19ebadfc-fd1b-45bb-b02b-8aec2f945969
+
+	measure 'Seasonal Naive MAE (city)' = CALCULATE ( [Backtest MAE], backtest_summary[level] = "city", backtest_summary[model] = "seasonal_naive_7d" )
+		formatString: 0
+		lineageTag: 682b8d00-2198-485f-849d-4829da7835c8
+
+	measure 'Last Value MAE (city)' = CALCULATE ( [Backtest MAE], backtest_summary[level] = "city", backtest_summary[model] = "last_value" )
+		formatString: 0
+		lineageTag: 83bd5d04-87f2-471c-83c3-d4afea34866f
+
+	measure 'Prophet vs Best Baseline' =
+			VAR best = MIN ( [Seasonal Naive MAE (city)], [Last Value MAE (city)] )
+			RETURN
+			    DIVIDE ( best - [Prophet MAE (city)], best )
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: ebd5416e-66fa-4522-afe3-075f7c664261
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

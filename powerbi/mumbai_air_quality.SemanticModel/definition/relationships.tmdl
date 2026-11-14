@@ -1,0 +1,105 @@
+relationship 9cf6cf0f-ed7b-4e76-8bca-a54dfd2c9922
+	joinOnDateBehavior: datePartOnly
+	fromColumn: backtest_summary.run_date
+	toColumn: LocalDateTable_5d69ccb8-7316-40d5-9312-62cd192af313.Date
+
+relationship e10e1404-ebbb-484e-9cc4-27e3dedc6e70
+	joinOnDateBehavior: datePartOnly
+	fromColumn: latest_forecast.run_date
+	toColumn: LocalDateTable_3af78f0f-7034-44a1-9288-6d0422992acb.Date
+
+relationship 175ce0e9-4c68-46de-b7a0-d28e48139ed0
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dominant_pollutant.month_start
+	toColumn: LocalDateTable_d8b349c7-5201-45c1-8fb2-eb7f92dbdfe3.Date
+
+relationship 631d86ef-c8af-42ad-8fa9-e9e22bd18c4d
+	joinOnDateBehavior: datePartOnly
+	fromColumn: forecast_backtest.run_date
+	toColumn: LocalDateTable_55f11ad6-1599-4c1b-9b4e-c3ffeec19625.Date
+
+relationship 73705178-116b-444b-aa0f-fcffa484bddf
+	joinOnDateBehavior: datePartOnly
+	fromColumn: forecast_backtest.origin_date
+	toColumn: LocalDateTable_cc08d513-51f9-4763-b61a-14d9f8da5d1c.Date
+
+relationship 60dc1c46-7bec-417b-9fd6-dba386387eb8
+	joinOnDateBehavior: datePartOnly
+	fromColumn: forecast_backtest.target_date
+	toColumn: LocalDateTable_07c0083a-b6f1-4413-970d-d65f5c3a4a68.Date
+
+relationship 5327f028-3eb6-481c-b166-0a4d46e2df46
+	joinOnDateBehavior: datePartOnly
+	fromColumn: station_coverage.first_day
+	toColumn: LocalDateTable_e5f236bb-dc5e-46af-8a87-f174bd222907.Date
+
+relationship 3c504aae-c50a-466f-a1d1-4c12d5a00dce
+	joinOnDateBehavior: datePartOnly
+	fromColumn: station_coverage.last_day
+	toColumn: LocalDateTable_292427a8-4604-4cb8-82cf-b06294da327a.Date
+
+relationship 9abad851-c7a7-44b2-8e81-7e1180b79542
+	joinOnDateBehavior: datePartOnly
+	fromColumn: weekly_trends.week_start
+	toColumn: LocalDateTable_fb0d23f1-c5aa-4e19-8d35-949f7a2e3329.Date
+
+relationship rel_city_daily_aqi_day
+	fromColumn: city_daily_aqi.day
+	toColumn: dim_date.day
+
+relationship rel_daily_station_aqi_day
+	fromColumn: daily_station_aqi.day
+	toColumn: dim_date.day
+
+relationship rel_daily_station_aqi_station_key
+	fromColumn: daily_station_aqi.station_key
+	toColumn: dim_station.station_key
+
+relationship rel_daily_station_aqi_dominant_pollutant
+	fromColumn: daily_station_aqi.dominant_pollutant
+	toColumn: dim_pollutant.pollutant
+
+relationship rel_daily_station_aqi_category
+	fromColumn: daily_station_aqi.category
+	toColumn: dim_aqi_category.category
+
+relationship rel_daily_pollutant_day
+	fromColumn: daily_pollutant.day
+	toColumn: dim_date.day
+
+relationship rel_daily_pollutant_station_key
+	fromColumn: daily_pollutant.station_key
+	toColumn: dim_station.station_key
+
+relationship rel_daily_pollutant_pollutant
+	fromColumn: daily_pollutant.pollutant
+	toColumn: dim_pollutant.pollutant
+
+relationship rel_neighbourhood_pollutant_pollutant
+	fromColumn: neighbourhood_pollutant.pollutant
+	toColumn: dim_pollutant.pollutant
+
+relationship rel_neighbourhood_pollutant_month_start
+	fromColumn: neighbourhood_pollutant.month_start
+	toColumn: dim_date.day
+
+relationship rel_seasonal_patterns_pollutant
+	fromColumn: seasonal_patterns.pollutant
+	toColumn: dim_pollutant.pollutant
+
+relationship rel_dominant_pollutant_station_key
+	fromColumn: dominant_pollutant.station_key
+	toColumn: dim_station.station_key
+
+relationship rel_dominant_pollutant_pollutant
+	fromColumn: dominant_pollutant.pollutant
+	toColumn: dim_pollutant.pollutant
+
+relationship rel_station_coverage_station_key
+	fromColumn: station_coverage.station_key
+	toColumn: dim_station.station_key
+
+relationship rel_latest_forecast_target_date
+	fromColumn: latest_forecast.target_date
+	toColumn: dim_date.day
+

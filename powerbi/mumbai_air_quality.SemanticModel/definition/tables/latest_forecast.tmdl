@@ -1,0 +1,114 @@
+table latest_forecast
+	lineageTag: ccb22d89-17b7-48de-bf1e-c29dc3795fb9
+
+	column level
+		dataType: string
+		lineageTag: 3988c560-8c18-4835-a24b-5675821df7f9
+		summarizeBy: none
+		sourceColumn: level
+
+		annotation SummarizationSetBy = Automatic
+
+	column station_key
+		dataType: string
+		lineageTag: 36686e91-f519-4e54-9f8c-138ccf78141a
+		summarizeBy: none
+		sourceColumn: station_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column target_date
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: 153889cd-7140-43c1-9463-37df6871bd17
+		summarizeBy: none
+		sourceColumn: target_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column horizon_days
+		dataType: int64
+		formatString: 0
+		lineageTag: ee546623-452e-425e-8961-553b14a31d16
+		summarizeBy: sum
+		sourceColumn: horizon_days
+
+		annotation SummarizationSetBy = Automatic
+
+	column run_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: e86f19e5-dc94-4073-bbb8-7e36d4a78ff9
+		summarizeBy: none
+		sourceColumn: run_date
+
+		variation Variation
+			isDefault
+			relationship: e10e1404-ebbb-484e-9cc4-27e3dedc6e70
+			defaultHierarchy: LocalDateTable_3af78f0f-7034-44a1-9288-6d0422992acb.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column aqi_forecast
+		dataType: double
+		lineageTag: c57246a0-da2c-4e90-9c7e-bc9cca925c5b
+		summarizeBy: sum
+		sourceColumn: aqi_forecast
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column aqi_lower
+		dataType: double
+		lineageTag: cc0ddeb0-945b-43e0-9076-95c76c98c84d
+		summarizeBy: sum
+		sourceColumn: aqi_lower
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column aqi_upper
+		dataType: double
+		lineageTag: 543e0d54-7b2f-446f-89b9-38c4d6a88bb9
+		summarizeBy: sum
+		sourceColumn: aqi_upper
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column model
+		dataType: string
+		lineageTag: 1bceff39-8407-42f3-9d1f-53f2bb2bd7e7
+		summarizeBy: none
+		sourceColumn: model
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_forecast
+		dataType: string
+		lineageTag: 0fe104a6-e53c-495c-a331-433631679a98
+		summarizeBy: none
+		sourceColumn: category_forecast
+
+		annotation SummarizationSetBy = Automatic
+
+	partition latest_forecast = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "air_quality"),
+				    marts_latest_forecast = Source{[Schema="marts",Item="latest_forecast"]}[Data]
+				in
+				    marts_latest_forecast
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

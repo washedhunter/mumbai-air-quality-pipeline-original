@@ -1,0 +1,77 @@
+table weekly_trends
+	lineageTag: c92fe6e2-51e5-4cde-a73a-471bc7da7a7b
+
+	column week_start
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0fe7cced-0e0b-4e22-b898-932708d17ec5
+		summarizeBy: none
+		sourceColumn: week_start
+
+		variation Variation
+			isDefault
+			relationship: 9abad851-c7a7-44b2-8e81-7e1180b79542
+			defaultHierarchy: LocalDateTable_fb0d23f1-c5aa-4e19-8d35-949f7a2e3329.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column station_key
+		dataType: string
+		lineageTag: 8a7ca392-00e4-423e-9fd8-d6558f2c5e5c
+		summarizeBy: none
+		sourceColumn: station_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column measure
+		dataType: string
+		lineageTag: fea5c462-fcaf-4e2c-8b31-05ef0a6658ac
+		summarizeBy: none
+		sourceColumn: measure
+
+		annotation SummarizationSetBy = Automatic
+
+	column value
+		dataType: double
+		lineageTag: d144bdb7-28ba-476d-982d-745b9ace5194
+		summarizeBy: sum
+		sourceColumn: value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column days
+		dataType: int64
+		formatString: 0
+		lineageTag: 99473287-fd20-43ae-8f57-f517c1007c21
+		summarizeBy: sum
+		sourceColumn: days
+
+		annotation SummarizationSetBy = Automatic
+
+	column change_pct
+		dataType: double
+		lineageTag: 2b79e97d-6e25-4451-b997-9d800a7a4c04
+		summarizeBy: sum
+		sourceColumn: change_pct
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition weekly_trends = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "air_quality"),
+				    marts_weekly_trends = Source{[Schema="marts",Item="weekly_trends"]}[Data]
+				in
+				    marts_weekly_trends
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

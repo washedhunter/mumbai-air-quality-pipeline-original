@@ -1,0 +1,120 @@
+table neighbourhood_pollutant
+	lineageTag: b2b08981-19fa-4975-bd64-58d01ce542e3
+
+	column month_start
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 79449a36-4dd1-436a-8e9e-98c99dca131b
+		summarizeBy: none
+		sourceColumn: month_start
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column neighbourhood
+		dataType: string
+		lineageTag: 103577ec-bbe0-4ab2-87a5-d7ee32f5a1d5
+		summarizeBy: none
+		sourceColumn: neighbourhood
+
+		annotation SummarizationSetBy = Automatic
+
+	column zone
+		dataType: string
+		lineageTag: 64581113-3d5e-44ec-a2d0-de715d0ac445
+		summarizeBy: none
+		sourceColumn: zone
+
+		annotation SummarizationSetBy = Automatic
+
+	column in_mumbai
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 08b5dff3-071d-4e64-9f6d-74d5190c7a99
+		summarizeBy: none
+		sourceColumn: in_mumbai
+
+		annotation SummarizationSetBy = Automatic
+
+	column pollutant
+		dataType: string
+		isHidden
+		lineageTag: 929ef576-4ec0-43f0-98d9-f239f7f2bbc1
+		summarizeBy: none
+		sourceColumn: pollutant
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column mean_concentration
+		dataType: double
+		lineageTag: be92af89-9f3e-4d21-8cb1-857cb4b0bcdc
+		summarizeBy: sum
+		sourceColumn: mean_concentration
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column mean_sub_index
+		dataType: double
+		lineageTag: d4251449-1894-42fd-820e-506926395aae
+		summarizeBy: sum
+		sourceColumn: mean_sub_index
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column n_stations
+		dataType: int64
+		formatString: 0
+		lineageTag: b5b181ca-290e-4c7f-9674-b2b4507c8fc7
+		summarizeBy: sum
+		sourceColumn: n_stations
+
+		annotation SummarizationSetBy = Automatic
+
+	column days
+		dataType: int64
+		formatString: 0
+		lineageTag: 6477c422-36ea-4059-b954-7474b0c31daf
+		summarizeBy: sum
+		sourceColumn: days
+
+		annotation SummarizationSetBy = Automatic
+
+	column rank_in_month
+		dataType: int64
+		formatString: 0
+		lineageTag: 85b6b3c3-d692-4f0f-a930-2a5d2493feec
+		summarizeBy: sum
+		sourceColumn: rank_in_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column ratio_to_average
+		dataType: double
+		lineageTag: e02bad46-0bdf-4ef9-8652-2e89adea136d
+		summarizeBy: sum
+		sourceColumn: ratio_to_average
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition neighbourhood_pollutant = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "air_quality"),
+				    marts_neighbourhood_pollutant = Source{[Schema="marts",Item="neighbourhood_pollutant"]}[Data]
+				in
+				    marts_neighbourhood_pollutant
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

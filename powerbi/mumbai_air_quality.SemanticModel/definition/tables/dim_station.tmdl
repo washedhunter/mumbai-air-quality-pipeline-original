@@ -1,0 +1,95 @@
+table dim_station
+	lineageTag: 4847d341-e828-4343-ad10-4f4f115e306f
+
+	column station_key
+		dataType: string
+		lineageTag: 989cfe9d-8c9d-48e8-b0b1-a8fa9eed116f
+		summarizeBy: none
+		sourceColumn: station_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column station_name
+		dataType: string
+		lineageTag: bb056c60-30f2-4adc-841a-4de6d9860a9e
+		summarizeBy: none
+		sourceColumn: station_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column operator
+		dataType: string
+		lineageTag: cbc37b35-ad69-414f-9344-9d3d3d4f45d3
+		summarizeBy: none
+		sourceColumn: operator
+
+		annotation SummarizationSetBy = Automatic
+
+	column neighbourhood
+		dataType: string
+		lineageTag: a0dfc313-d963-46ba-81f2-7c96004946e5
+		summarizeBy: none
+		sourceColumn: neighbourhood
+
+		annotation SummarizationSetBy = Automatic
+
+	column zone
+		dataType: string
+		lineageTag: bfa89445-771f-424c-8c65-4c2d36e50599
+		summarizeBy: none
+		sourceColumn: zone
+
+		annotation SummarizationSetBy = Automatic
+
+	column in_mumbai
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 6ca8c9c7-5d17-4a1d-8731-72706e17bcb9
+		summarizeBy: none
+		sourceColumn: in_mumbai
+
+		annotation SummarizationSetBy = Automatic
+
+	column lat
+		dataType: double
+		lineageTag: 48eb9619-27aa-48f1-a1ad-e22e515342ab
+		dataCategory: Latitude
+		summarizeBy: none
+		sourceColumn: lat
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column lon
+		dataType: double
+		lineageTag: 30d31ba4-b676-48ad-8001-be78bfa24732
+		dataCategory: Longitude
+		summarizeBy: none
+		sourceColumn: lon
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column openaq_location_ids
+		dataType: string
+		lineageTag: 814bde79-3749-45ff-8e28-8f88f25dbe66
+		summarizeBy: none
+		sourceColumn: openaq_location_ids
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_station = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "air_quality"),
+				    marts_dim_station = Source{[Schema="marts",Item="dim_station"]}[Data]
+				in
+				    marts_dim_station
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

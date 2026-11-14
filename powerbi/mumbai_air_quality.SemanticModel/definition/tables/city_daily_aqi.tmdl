@@ -1,0 +1,93 @@
+table city_daily_aqi
+	lineageTag: bc3172be-197c-4349-9c03-8394a11211cb
+
+	column day
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: ca931c9c-c1d5-4d15-90fa-f661003711e7
+		summarizeBy: none
+		sourceColumn: day
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column aqi
+		dataType: double
+		lineageTag: c6e5c774-8ab6-414b-8a89-6a10eb40aa63
+		summarizeBy: sum
+		sourceColumn: aqi
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column aqi_median
+		dataType: double
+		lineageTag: 2890563c-42ab-4ca7-a70d-8e0b639637bc
+		summarizeBy: sum
+		sourceColumn: aqi_median
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column aqi_min
+		dataType: int64
+		formatString: 0
+		lineageTag: c34df299-56c4-4322-94c6-0d909b547c97
+		summarizeBy: sum
+		sourceColumn: aqi_min
+
+		annotation SummarizationSetBy = Automatic
+
+	column aqi_max
+		dataType: int64
+		formatString: 0
+		lineageTag: 8aa8f099-c922-482c-838f-cb1c6b2a2d82
+		summarizeBy: sum
+		sourceColumn: aqi_max
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_stations
+		dataType: int64
+		formatString: 0
+		lineageTag: a426d564-c9f7-4280-a2ab-cf3b389802df
+		summarizeBy: sum
+		sourceColumn: n_stations
+
+		annotation SummarizationSetBy = Automatic
+
+	column category
+		dataType: string
+		lineageTag: efc9b995-69c1-4bf0-b668-e1d8d0413dc1
+		summarizeBy: none
+		sourceColumn: category
+
+		annotation SummarizationSetBy = Automatic
+
+	column dominant_pollutant
+		dataType: string
+		lineageTag: 20a06f78-792d-4431-bfef-c01d290e8871
+		summarizeBy: none
+		sourceColumn: dominant_pollutant
+
+		annotation SummarizationSetBy = Automatic
+
+	partition city_daily_aqi = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "air_quality"),
+				    marts_city_daily_aqi = Source{[Schema="marts",Item="city_daily_aqi"]}[Data]
+				in
+				    marts_city_daily_aqi
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

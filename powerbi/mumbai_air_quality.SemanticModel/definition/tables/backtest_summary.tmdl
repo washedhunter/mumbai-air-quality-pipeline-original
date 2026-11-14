@@ -1,0 +1,76 @@
+table backtest_summary
+	lineageTag: 265a8f82-e5e0-4024-a358-db2ccf4d5f0a
+
+	column run_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 7dee6758-a395-4763-8564-a2420855da7e
+		summarizeBy: none
+		sourceColumn: run_date
+
+		variation Variation
+			isDefault
+			relationship: 9cf6cf0f-ed7b-4e76-8bca-a54dfd2c9922
+			defaultHierarchy: LocalDateTable_5d69ccb8-7316-40d5-9312-62cd192af313.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column level
+		dataType: string
+		lineageTag: 7deb54b6-86ef-43ee-aacf-0e4f9c864c74
+		summarizeBy: none
+		sourceColumn: level
+
+		annotation SummarizationSetBy = Automatic
+
+	column model
+		dataType: string
+		lineageTag: ac7f6866-f161-411b-a3b8-f0f58c860970
+		summarizeBy: none
+		sourceColumn: model
+
+		annotation SummarizationSetBy = Automatic
+
+	column horizon_days
+		dataType: int64
+		formatString: 0
+		lineageTag: 6bb10e67-c08e-46ea-9300-31664c2b97d1
+		summarizeBy: sum
+		sourceColumn: horizon_days
+
+		annotation SummarizationSetBy = Automatic
+
+	column mae
+		dataType: double
+		lineageTag: 759bea96-a39d-4ceb-8ae1-9bc51891f2c4
+		summarizeBy: sum
+		sourceColumn: mae
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column n
+		dataType: int64
+		formatString: 0
+		lineageTag: 7d652182-528f-432f-a872-e5ec3da1d33f
+		summarizeBy: sum
+		sourceColumn: n
+
+		annotation SummarizationSetBy = Automatic
+
+	partition backtest_summary = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "air_quality"),
+				    marts_backtest_summary = Source{[Schema="marts",Item="backtest_summary"]}[Data]
+				in
+				    marts_backtest_summary
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

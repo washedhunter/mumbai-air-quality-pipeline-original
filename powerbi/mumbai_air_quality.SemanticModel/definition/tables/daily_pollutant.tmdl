@@ -1,0 +1,98 @@
+table daily_pollutant
+	lineageTag: bbde148e-b6f6-4130-b384-cf3cde1b6e0d
+
+	column station_key
+		dataType: string
+		isHidden
+		lineageTag: 17f2976d-4482-4bd5-99f0-8d9763f582a7
+		summarizeBy: none
+		sourceColumn: station_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column day
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 97450993-79df-43d4-8988-830e29f9c03e
+		summarizeBy: none
+		sourceColumn: day
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column pollutant
+		dataType: string
+		isHidden
+		lineageTag: 4f538105-bd26-42fd-b012-6266323c51c1
+		summarizeBy: none
+		sourceColumn: pollutant
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column concentration
+		dataType: double
+		lineageTag: 012b20f8-ce74-48c0-8921-cf6a54ed64b6
+		summarizeBy: sum
+		sourceColumn: concentration
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column averaging
+		dataType: string
+		lineageTag: 2936926f-4226-4acb-aa2c-475a2109db2d
+		summarizeBy: none
+		sourceColumn: averaging
+
+		annotation SummarizationSetBy = Automatic
+
+	column hours_with_data
+		dataType: int64
+		formatString: 0
+		lineageTag: 9b7069b0-6a3d-429d-bc8c-0b8db0a4ccd7
+		summarizeBy: sum
+		sourceColumn: hours_with_data
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: eb3c897b-232b-4bc5-a033-2e46dc4207cf
+		summarizeBy: none
+		sourceColumn: valid
+
+		annotation SummarizationSetBy = Automatic
+
+	column sub_index
+		dataType: double
+		lineageTag: aca280de-f086-43cd-8da7-35ce5297e677
+		summarizeBy: sum
+		sourceColumn: sub_index
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition daily_pollutant = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "air_quality"),
+				    marts_daily_pollutant = Source{[Schema="marts",Item="daily_pollutant"]}[Data]
+				in
+				    marts_daily_pollutant
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

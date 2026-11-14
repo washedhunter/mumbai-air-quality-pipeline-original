@@ -1,0 +1,128 @@
+table station_coverage
+	lineageTag: b602321f-90ee-4083-894d-4d3b89c16097
+
+	column station_key
+		dataType: string
+		isHidden
+		lineageTag: 66ff617f-4d5b-4b64-8d65-9fc9735e35e9
+		summarizeBy: none
+		sourceColumn: station_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column station_name
+		dataType: string
+		lineageTag: 1005aa79-09dc-47d1-8c18-e32d2b897728
+		summarizeBy: none
+		sourceColumn: station_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column neighbourhood
+		dataType: string
+		lineageTag: 2e896ea4-55ab-4885-8e98-d705fd804c57
+		summarizeBy: none
+		sourceColumn: neighbourhood
+
+		annotation SummarizationSetBy = Automatic
+
+	column zone
+		dataType: string
+		lineageTag: d7107e53-09d1-4328-a188-b1eee866f36b
+		summarizeBy: none
+		sourceColumn: zone
+
+		annotation SummarizationSetBy = Automatic
+
+	column first_day
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 8a83aab6-e01e-4d47-b78c-e3d63b76a07b
+		summarizeBy: none
+		sourceColumn: first_day
+
+		variation Variation
+			isDefault
+			relationship: 5327f028-3eb6-481c-b166-0a4d46e2df46
+			defaultHierarchy: LocalDateTable_e5f236bb-dc5e-46af-8a87-f174bd222907.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column last_day
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 57f2b200-5e2c-47f8-9c1a-39b31b6223a0
+		summarizeBy: none
+		sourceColumn: last_day
+
+		variation Variation
+			isDefault
+			relationship: 3c504aae-c50a-466f-a1d1-4c12d5a00dce
+			defaultHierarchy: LocalDateTable_292427a8-4604-4cb8-82cf-b06294da327a.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column days_with_data
+		dataType: int64
+		formatString: 0
+		lineageTag: ce8455a6-0e82-4bba-9373-5b05a0820745
+		summarizeBy: sum
+		sourceColumn: days_with_data
+
+		annotation SummarizationSetBy = Automatic
+
+	column days_with_aqi
+		dataType: int64
+		formatString: 0
+		lineageTag: 70f11462-2ca6-49e7-9cff-4dc850daf6c2
+		summarizeBy: sum
+		sourceColumn: days_with_aqi
+
+		annotation SummarizationSetBy = Automatic
+
+	column days_in_window
+		dataType: int64
+		formatString: 0
+		lineageTag: 75d75632-5028-4c20-801a-649c300c56ad
+		summarizeBy: sum
+		sourceColumn: days_in_window
+
+		annotation SummarizationSetBy = Automatic
+
+	column pct_days_with_aqi
+		dataType: double
+		lineageTag: a3f8b01f-2ed8-4961-a8bd-e9e4c16f86e9
+		summarizeBy: sum
+		sourceColumn: pct_days_with_aqi
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column pollutants
+		dataType: string
+		lineageTag: 681beb87-3b6e-4de5-b4c8-0ec96fe00658
+		summarizeBy: none
+		sourceColumn: pollutants
+
+		annotation SummarizationSetBy = Automatic
+
+	partition station_coverage = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "air_quality"),
+				    marts_station_coverage = Source{[Schema="marts",Item="station_coverage"]}[Data]
+				in
+				    marts_station_coverage
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

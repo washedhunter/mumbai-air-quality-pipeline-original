@@ -1,0 +1,73 @@
+table dominant_pollutant
+	lineageTag: fbe0c2db-d412-4d83-9d9f-1b647eef8e44
+
+	column month_start
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: dfd9d38a-762a-4780-9412-2b692d692ef6
+		summarizeBy: none
+		sourceColumn: month_start
+
+		variation Variation
+			isDefault
+			relationship: 175ce0e9-4c68-46de-b7a0-d28e48139ed0
+			defaultHierarchy: LocalDateTable_d8b349c7-5201-45c1-8fb2-eb7f92dbdfe3.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column station_key
+		dataType: string
+		isHidden
+		lineageTag: 8137af3a-9541-4519-8bf5-10f1ba1e3b6d
+		summarizeBy: none
+		sourceColumn: station_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column pollutant
+		dataType: string
+		isHidden
+		lineageTag: e639668f-dc8f-4296-827e-58a1fc7da0da
+		summarizeBy: none
+		sourceColumn: pollutant
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column days_dominant
+		dataType: int64
+		formatString: 0
+		lineageTag: 1b491630-60d0-4d70-92e7-cab7825b3dd2
+		summarizeBy: sum
+		sourceColumn: days_dominant
+
+		annotation SummarizationSetBy = Automatic
+
+	column pct_of_days
+		dataType: double
+		lineageTag: c72b1bc9-e5ef-4bde-b601-7187603f2272
+		summarizeBy: sum
+		sourceColumn: pct_of_days
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition dominant_pollutant = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "air_quality"),
+				    marts_dominant_pollutant = Source{[Schema="marts",Item="dominant_pollutant"]}[Data]
+				in
+				    marts_dominant_pollutant
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

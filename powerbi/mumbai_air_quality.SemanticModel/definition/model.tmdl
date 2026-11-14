@@ -1,0 +1,44 @@
+model Model
+	culture: en-IN
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-IN
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["backtest_summary","latest_forecast","city_daily_aqi","daily_pollutant","daily_station_aqi","dim_aqi_category","dim_date","dim_pollutant","dim_station","dominant_pollutant","forecast_backtest","neighbourhood_pollutant","seasonal_patterns","station_coverage","weekly_trends","_Measures"]
+
+annotation PBI_ProTooling = ["DaxQueryView_Desktop","TMDLView_Desktop","DevMode"]
+
+ref table backtest_summary
+ref table DateTableTemplate_1a3860a3-13a9-49a1-8983-72f21325f018
+ref table LocalDateTable_5d69ccb8-7316-40d5-9312-62cd192af313
+ref table latest_forecast
+ref table LocalDateTable_3af78f0f-7034-44a1-9288-6d0422992acb
+ref table city_daily_aqi
+ref table daily_pollutant
+ref table daily_station_aqi
+ref table dim_aqi_category
+ref table dim_date
+ref table dim_pollutant
+ref table dim_station
+ref table dominant_pollutant
+ref table LocalDateTable_d8b349c7-5201-45c1-8fb2-eb7f92dbdfe3
+ref table forecast_backtest
+ref table LocalDateTable_55f11ad6-1599-4c1b-9b4e-c3ffeec19625
+ref table LocalDateTable_cc08d513-51f9-4763-b61a-14d9f8da5d1c
+ref table LocalDateTable_07c0083a-b6f1-4413-970d-d65f5c3a4a68
+ref table neighbourhood_pollutant
+ref table seasonal_patterns
+ref table station_coverage
+ref table LocalDateTable_e5f236bb-dc5e-46af-8a87-f174bd222907
+ref table LocalDateTable_292427a8-4604-4cb8-82cf-b06294da327a
+ref table weekly_trends
+ref table LocalDateTable_fb0d23f1-c5aa-4e19-8d35-949f7a2e3329
+ref table _Measures
+
+ref cultureInfo en-IN
+
