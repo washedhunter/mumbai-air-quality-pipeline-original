@@ -1,6 +1,7 @@
 -- materialized: view
 -- MAE per level, model and horizon for the latest backtest, over cells every model predicted
--- (same rule as mumbai_aq.forecast.summarise_backtest, so the README and Power BI agree).
+-- (same rule as mumbai_aq.forecast.summarise_backtest). The Power BI measure pools these rows
+-- weighted by n, which gives the same overall MAE as the README.
 CREATE OR REPLACE VIEW marts.backtest_summary AS
 WITH latest AS (
     SELECT * FROM marts.forecast_backtest

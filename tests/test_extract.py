@@ -5,7 +5,7 @@ from __future__ import annotations
 import gzip
 import json
 from dataclasses import replace
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 
 import httpx
 import pytest
@@ -16,6 +16,11 @@ from mumbai_aq.openaq import OpenAQApi, OpenAQArchive, OpenAQError
 from mumbai_aq.validate import ValidationError, validate_day
 
 DAY = date(2026, 11, 8)
+START = datetime(2026, 11, 7, 19, 0, tzinfo=UTC)  # 00:30 IST on DAY
+
+
+def _iso(t: datetime) -> str:
+    return t.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def archive_csv(location_id=6945, rows=None) -> bytes:
@@ -42,8 +47,8 @@ def measurements_json(values=(270.58, 220.07)) -> bytes:
                 "value": v,
                 "parameter": {"id": 1, "name": "pm10", "units": "Âµg/mÂ³"},  # as the API sends it
                 "period": {
-                    "datetimeFrom": {"utc": f"2026-11-07T19:{i * 15:02d}:00Z"},
-                    "datetimeTo": {"utc": f"2026-11-07T19:{i * 15 + 15:02d}:00Z"},
+                    "datetimeFrom": {"utc": _iso(START + timedelta(minutes=15 * i))},
+                    "datetimeTo": {"utc": _iso(START + timedelta(minutes=15 * i + 15))},
                 },
             }
         )
@@ -320,3 +325,33 @@ def test_sample_source_replays_committed_payloads(settings_env, tmp_path):
     assert validate_day(tmp_path, date(2026, 11, 8))["locations_with_data"] == 6
     with pytest.raises(FileNotFoundError):
         extract_day(date(2020, 1, 1), s, landing_root=tmp_path)
+
+
+def test_archive_day_without_any_files_is_a_source_gap_not_an_error(tmp_path):
+    from mumbai_aq.config import Settings
+
+    s = replace(Settings(), openaq_api_key="", extract_source="archive")
+    arch = OpenAQArchive(
+        s, client=httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(404)))
+    )
+    extract_day(DAY, s, landing_root=tmp_path, archive=arch, location_ids={6945, 6927})
+    summary = validate_day(tmp_path, DAY)
+    assert summary["no_source_data"] is True and summary["readings"] == 0
+
+
+def test_full_api_page_is_flagged_as_possible_truncation(tmp_path):
+    s = _settings(extract_source="api")
+
+    def handler(request):
+        if request.url.path.endswith("/locations"):
+            return httpx.Response(200, content=locations_json())
+        return httpx.Response(200, content=measurements_json(values=[1.0] * 1000))
+
+    api = OpenAQApi(
+        s,
+        client=httpx.Client(base_url=s.openaq_base_url, transport=httpx.MockTransport(handler)),
+        sleep=lambda _: None,
+    )
+    extract_day(DAY, s, landing_root=tmp_path, api=api)
+    with pytest.raises(ValidationError, match="full page"):
+        validate_day(tmp_path, DAY)

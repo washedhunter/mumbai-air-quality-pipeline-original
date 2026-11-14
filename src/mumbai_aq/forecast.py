@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import logging
+import zlib
 from dataclasses import dataclass
 from datetime import date
 
@@ -33,11 +34,18 @@ class Series:
     data: pd.Series  # index: day (Timestamp), values: AQI
 
 
-def fit_predict(history: pd.Series, horizon_dates: list[pd.Timestamp]) -> pd.DataFrame:
-    """Fit Prophet on `history` (daily AQI) and predict `horizon_dates`."""
+def fit_predict(
+    history: pd.Series, horizon_dates: list[pd.Timestamp], seed_key: str = ""
+) -> pd.DataFrame:
+    """Fit Prophet on `history` (daily AQI) and predict `horizon_dates`.
+
+    Prophet draws its uncertainty intervals by random sampling from numpy's global generator, so
+    it is seeded from the series and dates: re-running a day reproduces the same intervals."""
     from prophet import Prophet  # imported lazily: slow import, not needed by the other tasks
 
     history = history.dropna()
+    seed_text = f"{seed_key}|{history.index.max().date()}|{len(history)}"
+    np.random.seed(zlib.crc32(seed_text.encode()))
     span_days = (history.index.max() - history.index.min()).days
     model = Prophet(
         yearly_seasonality=span_days >= 365,
@@ -77,7 +85,7 @@ def load_series(conn: psycopg.Connection, settings: Settings, run_date: date) ->
     out: list[Series] = []
     with conn.cursor() as cur:
         cur.execute(
-            "SELECT day, aqi FROM marts.city_daily_aqi WHERE n_stations >= 3 AND day <= %s ORDER BY day",
+            "SELECT day, aqi FROM marts.city_daily_aqi WHERE day <= %s ORDER BY day",
             (run_date,),
         )
         city = cur.fetchall()
@@ -113,7 +121,9 @@ def backtest_series(
         if len(hist) < 30:
             continue
         targets = [origin + pd.Timedelta(days=h) for h in range(1, horizon + 1)]
-        prophet = fit_predict(hist, targets)["aqi_forecast"].tolist()
+        prophet = fit_predict(hist, targets, f"{series.level}:{series.key}")[
+            "aqi_forecast"
+        ].tolist()
         preds = {"prophet": prophet, **baseline_predictions(hist, origin, horizon)}
         for h, target in enumerate(targets, start=1):
             if target not in data.index:
@@ -145,7 +155,7 @@ def run_forecast(conn: psycopg.Connection, settings: Settings, run_date: date) -
     backtest: list[dict] = []
     targets = [pd.Timestamp(run_date) + pd.Timedelta(days=h) for h in range(1, horizon + 1)]
     for s in series:
-        pred = fit_predict(s.data, targets)
+        pred = fit_predict(s.data, targets, f"{s.level}:{s.key}")
         for h, row in enumerate(pred.itertuples(index=False), start=1):
             forecasts.append(
                 (

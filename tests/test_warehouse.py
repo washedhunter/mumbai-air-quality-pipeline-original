@@ -42,7 +42,7 @@ def _fingerprint(conn) -> dict[str, tuple]:
         "raw.payloads": "source, endpoint, location_id, sensor_id, target_date, sha256",
         "staging.measurements": "target_date, location_id, sensor_id, parameter, value, ts_utc",
         "core.hourly": "station_key, parameter, hour_ist, value, n_readings",
-        "marts.forecasts": "run_date, level, station_key, target_date",
+        "marts.forecasts": "run_date, level, station_key, target_date, aqi_forecast, aqi_lower, aqi_upper",
     }
     out = {}
     with conn.cursor() as cur:
@@ -209,15 +209,20 @@ def test_dq_fails_loudly_on_bad_data(loaded):
 
     with db.connect(loaded) as conn:
         with conn.transaction(), conn.cursor() as cur:
-            cur.execute(
-                "UPDATE core.hourly SET value = -1 WHERE ctid = "
-                "(SELECT ctid FROM core.hourly WHERE day_ist = %s LIMIT 1)",
-                (LAST,),
-            )
-        with pytest.raises(dq.DataQualityError, match="hourly_values_plausible"):
+            cur.execute("DELETE FROM core.hourly WHERE day_ist = %s", (LAST,))
+        with pytest.raises(dq.DataQualityError, match="hourly_consistent_with_staging"):
             dq.run_checks(conn, LAST, forecast_expected=True)
-    # repair for any later test
-    pipeline.run_day(LAST, loaded, with_forecast=True)
+    pipeline.run_day(LAST, loaded, with_forecast=True)  # repair
+
+
+def test_dq_checks_all_pass_for_the_last_day(loaded):
+    with db.connect(loaded) as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT check_name, severity, passed FROM ops.dq_results WHERE run_date = %s", (LAST,)
+        )
+        rows = cur.fetchall()
+    assert len(rows) == 13
+    assert all(passed for _, sev, passed in rows if sev == "error")
 
 
 def test_migrate_is_repeatable(loaded):
@@ -258,3 +263,42 @@ def test_forecast_check_tolerates_short_history(loaded):
         assert cur.fetchone()[0] is False
         cur.execute(lenient.sql)
         assert cur.fetchone()[0] is True
+
+
+def test_reports_with_a_backtest(loaded, tmp_path):
+    """aq report must work once a backtest exists (it crashed on this before)."""
+    from mumbai_aq.reporting import write_reports
+
+    run = LAST + timedelta(days=100)  # a run date no other test uses
+    rows = [
+        (
+            run,
+            "city",
+            "mumbai",
+            LAST - timedelta(days=7),
+            LAST - timedelta(days=7 - h),
+            h,
+            m,
+            100.0,
+            100.0 + e,
+        )
+        for h in range(1, 8)
+        for m, e in (("prophet", 5.0), ("last_value", 9.0), ("seasonal_naive_7d", 12.0))
+    ]
+    with db.connect(loaded) as conn, conn.transaction(), conn.cursor() as cur:
+        cur.executemany(
+            "INSERT INTO marts.forecast_backtest VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", rows
+        )
+    try:
+        paths = write_reports(loaded, tmp_path)
+        text = (tmp_path / "backtest.md").read_text(encoding="utf-8")
+        assert "| city | 9.0 | 5.0 | 12.0 |" in text
+        assert {p.name for p in paths} == {"backtest.md", "coverage.md", "summary.json"}
+        with db.connect(loaded) as conn:
+            pooled = conn.execute(
+                "SELECT sum(mae * n) / sum(n) FROM marts.backtest_summary WHERE model = 'prophet'"
+            ).fetchone()[0]
+        assert pooled == pytest.approx(5.0)
+    finally:
+        with db.connect(loaded) as conn:
+            conn.execute("DELETE FROM marts.forecast_backtest WHERE run_date = %s", (run,))

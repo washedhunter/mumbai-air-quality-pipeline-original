@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -13,6 +14,8 @@ from .parse import PayloadError, parse_archive_csv, parse_locations_json, parse_
 
 ALLOWED_STATUS = {"locations": {200}, "measurements": {200}, "archive_day": {200, 403, 404}}
 MIN_IN_WINDOW_SHARE = 0.95
+log = logging.getLogger(__name__)
+MEASUREMENTS_PAGE_LIMIT = 1000  # openaq.OpenAQApi.measurements asks for one page of 1,000
 
 
 class ValidationError(RuntimeError):
@@ -61,19 +64,33 @@ def validate_day(landing_root: Path, day: date) -> dict:
             problems.append(str(exc))
             continue
         assert df is not None
+        if e.endpoint == "measurements" and len(df) >= MEASUREMENTS_PAGE_LIMIT:
+            problems.append(
+                f"{e.file}: {len(df)} readings = a full page; the day may be truncated (add paging)"
+            )
         rows += len(df)
         in_window += int(df["day_ist"].isin(window).sum())
         if len(df):
             locations_with_data.add(int(e.location_id))
 
-    if rows == 0:
+    readings_payloads = [e for e in entries if e.endpoint != "locations"]
+    archive_without_files = bool(readings_payloads) and all(
+        e.endpoint == "archive_day" and e.http_status in {403, 404} for e in readings_payloads
+    )
+    if rows == 0 and not archive_without_files:
+        # The API is real-time: nothing from any sensor means an outage or lag, so fail and retry.
         problems.append(f"{day}: no readings in any payload")
-    elif in_window / rows < MIN_IN_WINDOW_SHARE:
+    elif rows and in_window / rows < MIN_IN_WINDOW_SHARE:
         problems.append(f"{day}: only {in_window}/{rows} readings fall on or next to the day")
     if problems:
         raise ValidationError("; ".join(problems[:20]))
+    if rows == 0:
+        # The archive has no file for any station that day: a real gap in the source. The 404s are
+        # stored in raw.payloads and the source_has_data DQ warning flags the day.
+        log.warning("%s: the archive has no data for any station", day)
     return {
         "day": day.isoformat(),
+        "no_source_data": rows == 0,
         "payloads": len(entries),
         "readings": rows,
         "locations_with_data": len(locations_with_data),

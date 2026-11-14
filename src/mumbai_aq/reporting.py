@@ -57,9 +57,9 @@ def write_reports(settings: Settings, out_dir: Path) -> list[Path]:
             cur,
             "SELECT min(day_ist) AS first_day, max(day_ist) AS last_day, count(DISTINCT day_ist) AS days FROM core.hourly",
         )
-        city = _frame(
+        city_span = _frame(
             cur,
-            "SELECT count(*) AS days, min(day) AS first_day, max(day) AS last_day FROM marts.city_daily_aqi WHERE n_stations >= 3",
+            "SELECT count(*) AS days, min(day) AS first_day, max(day) AS last_day FROM marts.city_daily_aqi",
         )
         run = _frame(cur, "SELECT max(run_date) AS run_date FROM marts.forecast_backtest")
         run_date = run["run_date"].iloc[0]
@@ -110,12 +110,12 @@ def write_reports(settings: Settings, out_dir: Path) -> list[Path]:
         ]
         keys = ["level", "station_key", "origin_date", "target_date"]
         complete = bt.groupby(keys)["model"].transform("nunique") == bt["model"].nunique()
-        city = bt[complete & (bt["level"] == "city")].assign(
+        city_bt = bt[complete & (bt["level"] == "city")].assign(
             abs_err=lambda d: (d["actual"] - d["predicted"]).abs()
         )
-        if not city.empty:
+        if not city_bt.empty:
             by_h = (
-                city.groupby(["horizon_days", "model"])["abs_err"]
+                city_bt.groupby(["horizon_days", "model"])["abs_err"]
                 .mean()
                 .round(1)
                 .unstack()
@@ -131,7 +131,7 @@ def write_reports(settings: Settings, out_dir: Path) -> list[Path]:
     p.write_text(
         "# Station coverage\n\n"
         f"Hourly data from {span['first_day'].iloc[0]} to {span['last_day'].iloc[0]} "
-        f"({span['days'].iloc[0]} days). City AQI (>= 3 Mumbai stations) on {city['days'].iloc[0]} days.\n\n"
+        f"({span['days'].iloc[0]} days). City AQI (>= 3 Mumbai stations) on {city_span['days'].iloc[0]} days, from {city_span['first_day'].iloc[0]} to {city_span['last_day'].iloc[0]}.\n\n"
         + _md(cov),
         encoding="utf-8",
     )
@@ -143,7 +143,11 @@ def write_reports(settings: Settings, out_dir: Path) -> list[Path]:
             {
                 "row_counts": counts,
                 "hourly_span": span.astype(str).to_dict(orient="records")[0],
-                "city_aqi_days": int(city["days"].iloc[0]),
+                "city_aqi_days": int(city_span["days"].iloc[0]),
+                "city_aqi_span": [
+                    str(city_span["first_day"].iloc[0]),
+                    str(city_span["last_day"].iloc[0]),
+                ],
                 "stations_with_data": len(cov),
                 "backtest_run_date": str(run_date) if run_date else None,
                 "backtest_mae": summarise_backtest(bt).to_dict(orient="records")

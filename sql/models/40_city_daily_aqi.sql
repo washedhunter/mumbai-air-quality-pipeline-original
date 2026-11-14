@@ -1,6 +1,7 @@
 -- materialized: table
 -- Mumbai city AQI per day = mean AQI of the stations inside Mumbai (island city + suburbs) that
--- have a valid AQI that day. This is our definition; the median and station count sit alongside.
+-- have a valid AQI that day, only on days with at least 3 such stations (so one or two stations
+-- never stand in for the city). Our definition; the median and station count sit alongside.
 DROP TABLE IF EXISTS marts.city_daily_aqi CASCADE;
 
 CREATE TABLE marts.city_daily_aqi AS
@@ -15,6 +16,7 @@ SELECT a.day,
   FROM marts.daily_station_aqi a
   JOIN marts.dim_station s USING (station_key)
  WHERE a.aqi IS NOT NULL AND s.in_mumbai
- GROUP BY a.day;
+ GROUP BY a.day
+HAVING count(*) >= 3;
 
 ALTER TABLE marts.city_daily_aqi ADD PRIMARY KEY (day);

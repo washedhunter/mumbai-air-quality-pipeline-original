@@ -143,7 +143,6 @@ services:
     volumes:
       - airflow-logs:/opt/airflow/logs
       - landing:/opt/airflow/data
-      - ./reports:/opt/airflow/reports
     depends_on:
       <<: *airflow-depends
       airflow-init:
