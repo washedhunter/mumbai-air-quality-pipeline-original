@@ -39,8 +39,11 @@ def _days(start: date, end: date) -> list[date]:
     return [start + timedelta(days=i) for i in range((end - start).days + 1)]
 
 
+RUN_HOUR_IST = 2  # the DAG's cron hour: a day's run has logical date <day> 02:00 IST
+
+
 def _logical(day: date) -> str:
-    return datetime.combine(day, datetime.min.time(), IST).isoformat()
+    return datetime.combine(day, datetime.min.time(), IST).replace(hour=RUN_HOUR_IST).isoformat()
 
 
 # ---------------------------------------------------------------- Airflow wrappers

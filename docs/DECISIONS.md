@@ -137,8 +137,11 @@ at short horizons but more code and less explainable); Prophet was the stack nam
   fits Docker Desktop's memory), separate `api-server`, `scheduler` and `dag-processor`.
 - **Two Postgres containers:** Airflow's metadata DB and the warehouse are separate, so Power BI and
   Airflow never share credentials or load.
-- **Schedule:** `CronDataIntervalTimetable` at 00:00 IST, so a run's logical date is the start of the
-  day it processes and backfill dates map 1:1 to days. The run fires after the day ends.
+- **Schedule:** `CronDataIntervalTimetable` at 02:00 IST. A run's logical date is 02:00 IST on the
+  day it processes, so backfill dates map 1:1 to days, and the run fires at 02:00 the next day,
+  two hours after the day ends, so OpenAQ has received the last readings. (Airflow 3's default
+  for cron schedules, `CronTriggerTimetable`, would make the logical date the *firing* time, i.e.
+  the next day, which is easy to get off by one.)
 - Business logic lives in the `mumbai_aq` package; the DAG file only wires tasks. The same steps run
   without Airflow (`aq local-run`), which is what CI's Postgres job uses.
 - The UI runs without a login (`SIMPLE_AUTH_MANAGER_ALL_ADMINS`) because it's a local dev stack; the

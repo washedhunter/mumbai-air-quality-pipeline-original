@@ -36,3 +36,15 @@ def test_dag_structure(dagbag):
     assert dag.catchup is False
     assert dag.max_active_runs == 4
     assert all(t.retries >= 1 for t in dag.tasks)
+
+
+def test_schedule_is_daily_at_two_ist(dagbag):
+    """Logical date = 02:00 IST on the day processed; it must match the CLI's trigger dates."""
+    from mumbai_aq.cli import RUN_HOUR_IST, _logical
+
+    dag = dagbag.dags["mumbai_air_quality"]
+    assert dag.timetable.summary.startswith("0 2 * * *") or "0 2 * * *" in str(
+        dag.timetable.summary
+    )
+    assert dag.start_date.hour == RUN_HOUR_IST
+    assert _logical(__import__("datetime").date(2026, 11, 13)) == "2026-11-13T02:00:00+05:30"

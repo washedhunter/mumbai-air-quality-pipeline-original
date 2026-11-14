@@ -40,9 +40,10 @@ def _forecast_wanted() -> bool:
 @dag(
     dag_id="mumbai_air_quality",
     description="OpenAQ -> PostgreSQL -> CPCB AQI SQL models -> Prophet forecast, one IST day per run",
-    # Data interval [D 00:00, D+1 00:00) IST; the run starts at 02:00 IST on D+1.
-    schedule=CronDataIntervalTimetable("0 0 * * *", timezone=IST),
-    start_date=pendulum.datetime(2024, 11, 1, tz=IST),
+    # Data interval [D 02:00, D+1 02:00) IST, so the run for day D starts at 02:00 IST on D+1,
+    # giving OpenAQ two hours to receive the day's last readings. Logical date = D 02:00 IST.
+    schedule=CronDataIntervalTimetable("0 2 * * *", timezone=IST),
+    start_date=pendulum.datetime(2024, 11, 1, 2, tz=IST),
     catchup=False,  # history is loaded with `airflow backfill create` (see README)
     max_active_runs=4,
     default_args={
