@@ -106,8 +106,12 @@ def checks(run_date: date, forecast_expected: bool, min_city_days: int = 60) -> 
             Check(
                 "forecast_written",
                 "error",
-                f"SELECT count(*) > 0, count(*)::text FROM marts.forecasts WHERE run_date = '{d}' AND level = 'city'",
-                "The city 7-day forecast was written for this run.",
+                f"""SELECT count(*) > 0
+                           OR (SELECT count(*) FROM marts.city_daily_aqi
+                                WHERE n_stations >= 3 AND day <= '{d}') < {int(min_city_days)},
+                           count(*)::text
+                      FROM marts.forecasts WHERE run_date = '{d}' AND level = 'city'""",
+                "The city 7-day forecast was written (unless the city series is still too short).",
             )
         )
     return out

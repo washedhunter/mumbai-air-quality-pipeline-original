@@ -240,3 +240,21 @@ def test_powerbi_guide_references_exist(loaded):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     assert mod.check(loaded.warehouse_dsn) == []
+
+
+def test_forecast_check_tolerates_short_history(loaded):
+    """With less city history than the forecast minimum, a missing forecast is not an error."""
+    from mumbai_aq import dq
+
+    day = LAST + timedelta(days=30)  # no forecast for this run date
+    with db.connect(loaded) as conn, conn.cursor() as cur:
+        strict = next(
+            c for c in dq.checks(day, True, min_city_days=5) if c.name == "forecast_written"
+        )
+        lenient = next(
+            c for c in dq.checks(day, True, min_city_days=10_000) if c.name == "forecast_written"
+        )
+        cur.execute(strict.sql)
+        assert cur.fetchone()[0] is False
+        cur.execute(lenient.sql)
+        assert cur.fetchone()[0] is True
